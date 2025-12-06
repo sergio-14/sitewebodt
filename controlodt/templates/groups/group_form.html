@@ -1,0 +1,275 @@
+{# templates/groups/group_form.html #}
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="max-w-auto text-slate-950 mx-auto md:px-4 px-2  py-8">
+  <!-- Header -->
+  <div class="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-primary">{{ title }}</h1>
+      <p class="text-neutral-500 text-sm">Asigna permisos al grupo para aplicarlos a usuarios.</p>
+    </div>
+
+   
+  </div>
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Nombre -->
+    <div class="rounded-2xl border border-neutral-200 bg-white p-5">
+      <label class="block text-sm font-medium mb-1">Nombre del grupo</label>
+      {{ form.name }}
+      {% for e in form.name.errors %}
+        <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <!-- Permisos -->
+    <div class="rounded-2xl border border-neutral-200 bg-white md:p-5 p-2">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div>
+          <label class="block text-sm font-medium">Permisos</label>
+          <p class="text-neutral-500 text-xs mt-1">Filtra y asigna permisos por modelo.</p>
+        </div>
+
+        <!-- Buscador: full width en móvil, fijo en md+ -->
+        <div class="w-full md:w-72">
+          <input id="permSearch" type="text" placeholder="Buscar permiso (nombre o codename)"
+                 class="w-full h-10 rounded-lg border border-neutral-200 px-3 focus:outline-none focus:ring-2 focus:ring-neutral-900" />
+        </div>
+      </div>
+
+      {% with grouped=form.allowed_grouped selected_ids=form.selected_ids %}
+        {% if grouped %}
+          <div class="mt-4 space-y-4" id="permContainer">
+            {# Iterar por modelos (grouped es OrderedDict) #}
+            {% for key, items in grouped.items %}
+              {% with model_verbose_plural=key.2 %}
+                <div class="border border-neutral-200 rounded-xl bg-white shadow-sm overflow-hidden">
+                  <div class="md:flex flex-row items-center justify-between px-4 py-3 bg-neutral-50 border-b border-neutral-200">
+                    <div class="font-semibold text-sm">{{ model_verbose_plural }}</div>
+
+                    <div class="flex items-center gap-2">
+                      <!-- botones compactos -->
+                      <button type="button"
+                              class="text-xs underline select-all px-2 py-1"
+                              data-model="{{ forloop.counter0 }}">Seleccionar</button>
+
+                      <button type="button"
+                              class="text-xs underline deselect-all px-2 py-1"
+                              data-model="{{ forloop.counter0 }}">Quitar</button>
+
+                      <button type="button"
+                              class="h-8 w-8 inline-flex items-center justify-center rounded-lg toggle-accordion"
+                              data-model="{{ forloop.counter0 }}"
+                              aria-expanded="false"
+                              aria-controls="model-wrapper-{{ forloop.counter0 }}"
+                              title="Mostrar / ocultar permisos">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {# WRAPPER: controla max-height y overflow #}
+                  <div id="model-wrapper-{{ forloop.counter0 }}"
+                       class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
+                       data-model="{{ forloop.counter0 }}"
+                       style="max-height: 0;">
+                    {# INNER: aquí va el grid real (siempre renderizado) #}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2 p-4"
+                         id="model-inner-{{ forloop.counter0 }}">
+                      {% for it in items %}
+                        {% with p=it.perm %}
+                          <label class="flex items-start gap-3 perm-item" style="align-items:flex-start;"
+                                 data-text="{{ it.label|lower }} {{ p.codename|lower }} {{ p.content_type.app_label|lower }}">
+                            <input type="checkbox" name="{{ form.permissions.html_name }}" value="{{ p.id }}"
+                                   class="mt-1 rounded border-neutral-300"
+                                   {% if form.is_bound %}
+                                     {% if p.id|stringformat:'s' in form.selected_ids %}checked{% endif %}
+                                   {% else %}
+                                     {% if is_edit and group_obj and p in group_obj.permissions.all %}checked{% endif %}
+                                   {% endif %}/>
+                            <div class="text-sm">
+                              <div class="font-medium">{{ it.label }}</div>
+                              <div class="text-neutral-500 text-xs">({{ p.content_type.app_label }}.{{ p.codename }})</div>
+                            </div>
+                          </label>
+                        {% endwith %}
+                      {% endfor %}
+                    </div>
+                  </div>
+                  {# FIN WRAPPER #}
+
+                </div>
+              {% endwith %}
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="mt-4 text-sm text-neutral-500">No hay permisos disponibles para las apps permitidas.</p>
+        {% endif %}
+      {% endwith %}
+
+      {% for e in form.permissions.errors %}
+        <p class="text-sm text-red-600 mt-2">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <!-- Acciones -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
+      <a href="{{ next_url }}" class="h-10 px-4 rounded-xl border border-neutral-300 inline-flex items-center justify-center hover:bg-neutral-100">Cancelar</a>
+      <button type="submit" class="h-10 px-5 rounded-xl bg-neutral-900 text-white font-semibold hover:opacity-90">Guardar</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  (function () {
+    const search = document.getElementById("permSearch");
+    const permItems = document.querySelectorAll(".perm-item");
+    const fieldName = "{{ form.permissions.html_name|escapejs }}";
+
+    // Helper que abre con animación ajustando max-height al inner.scrollHeight
+    function openWrapper(wrapper, inner) {
+      // Primer paso: setear max-height a inner.scrollHeight en el próximo frame para evitar glitches
+      requestAnimationFrame(() => {
+        // forzar que no esté en '0' antes de leer scrollHeight
+        wrapper.style.maxHeight = '0px';
+        // fuerza reflow
+        wrapper.offsetHeight;
+        const h = inner.scrollHeight;
+        wrapper.style.maxHeight = h + "px";
+      });
+    }
+
+    function closeWrapper(wrapper) {
+      // cerrar a 0
+      wrapper.style.maxHeight = '0px';
+    }
+
+    // Inicializar según ancho de pantalla: md+ abiertos, mobile cerrados
+    function initAllWrappers() {
+      const isDesktop = window.matchMedia && window.matchMedia("(min-width: 768px)").matches;
+      document.querySelectorAll("[id^='model-wrapper-']").forEach(wrapper => {
+        const id = wrapper.getAttribute('id'); // model-wrapper-N
+        const key = wrapper.getAttribute('data-model');
+        const inner = document.getElementById(`model-inner-${key}`);
+        const btn = document.querySelector(`.toggle-accordion[data-model="${key}"]`);
+        if (!inner || !btn) return;
+
+        if (isDesktop) {
+          // abrir: fijar maxHeight al contenido
+          // clear inline style first to let browser compute natural heights if needed
+          wrapper.style.maxHeight = inner.scrollHeight + "px";
+          btn.setAttribute('aria-expanded', 'true');
+        } else {
+          // cerrar
+          wrapper.style.maxHeight = '0px';
+          btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    // Toggle handler
+    document.querySelectorAll(".toggle-accordion").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const key = btn.getAttribute("data-model");
+        const wrapper = document.getElementById(`model-wrapper-${key}`);
+        const inner = document.getElementById(`model-inner-${key}`);
+        if (!wrapper || !inner) return;
+
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        if (expanded) {
+          closeWrapper(wrapper);
+          btn.setAttribute('aria-expanded', 'false');
+        } else {
+          openWrapper(wrapper, inner);
+          btn.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+
+    // Select / Deselect por modelo
+    document.querySelectorAll(".select-all").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const key = btn.getAttribute("data-model");
+        document.querySelectorAll(`input[name="${fieldName}"]`).forEach(cb => {
+          const parentWrapper = cb.closest("[id^='model-wrapper-']");
+          if (parentWrapper && parentWrapper.getAttribute('data-model') === key) cb.checked = true;
+        });
+      });
+    });
+
+    document.querySelectorAll(".deselect-all").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const key = btn.getAttribute("data-model");
+        document.querySelectorAll(`input[name="${fieldName}"]`).forEach(cb => {
+          const parentWrapper = cb.closest("[id^='model-wrapper-']");
+          if (parentWrapper && parentWrapper.getAttribute('data-model') === key) cb.checked = false;
+        });
+      });
+    });
+
+    // Búsqueda en vivo: oculta labels (perm-item) pero recalcula alturas si están abiertos
+    search?.addEventListener("input", () => {
+      const term = search.value.toLowerCase().trim();
+      document.querySelectorAll(".perm-item").forEach(el => {
+        const txt = el.getAttribute("data-text") || "";
+        el.style.display = txt.includes(term) ? "" : "none";
+      });
+
+      // Recalcular alturas de wrappers abiertos (por si el contenido se reduce)
+      document.querySelectorAll("[id^='model-wrapper-']").forEach(wrapper => {
+        const key = wrapper.getAttribute('data-model');
+        const inner = document.getElementById(`model-inner-${key}`);
+        const btn = document.querySelector(`.toggle-accordion[data-model="${key}"]`);
+        if (!inner || !btn) return;
+        if (btn.getAttribute('aria-expanded') === 'true') {
+          // ajustar a nuevo scrollHeight
+          // uso requestAnimationFrame para asegurar que DOM ha aplicado display changes
+          requestAnimationFrame(() => {
+            wrapper.style.maxHeight = inner.scrollHeight + "px";
+          });
+        }
+      });
+    });
+
+    // Resize: reaplicar inicialización (debounced)
+    let resizeTimer = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        initAllWrappers();
+      }, 120);
+    });
+
+    // Observador de cambios DOM dentro de los inners para recalcular height si están abiertos
+    const observer = new MutationObserver((records) => {
+      records.forEach(rec => {
+        const node = rec.target;
+        // buscar wrapper correspondiente
+        const id = node.id || '';
+        if (id.startsWith('model-inner-')) {
+          const key = id.replace('model-inner-', '');
+          const wrapper = document.getElementById(`model-wrapper-${key}`);
+          const btn = document.querySelector(`.toggle-accordion[data-model="${key}"]`);
+          if (wrapper && btn && btn.getAttribute('aria-expanded') === 'true') {
+            requestAnimationFrame(() => {
+              wrapper.style.maxHeight = node.scrollHeight + "px";
+            });
+          }
+        }
+      });
+    });
+
+    // conectar observer a todos los inner
+    document.querySelectorAll("[id^='model-inner-']").forEach(inner => {
+      observer.observe(inner, { childList: true, subtree: true, characterData: true });
+    });
+
+    // inicial
+    initAllWrappers();
+  })();
+</script>
+
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %} {% block content %} {% load static %}
+
+<section class="bg-neutral-50 text-neutral-900">
+  <div class="max-w-auto mx-auto px-4 py-6">
+    <div class="md:flex flex-row sm:items-end sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-primary">Grupos</h1>
+        <p class="text-neutral-500 text-sm">Total: {{ total }}</p>
+      </div>
+
+      <div class="md:flex flex-row items-end gap-3 w-full md:w-auto">
+        <form method="get" class="flex-1 w-full md:w-120 md:mb-0 mb-1">
+          <label class="block text-sm font-medium mb-1">Buscar</label>
+          <div class="md:flex flex-rowmd:flex flex-row gap-2">
+            <input name="q" value="{{ q }}" class="w-full h-11 md:mb-0 mb-1 bg-neutral-100 rounded-xl border border-neutral-300 px-3 focus:outline-none focus:ring-2 focus:ring-neutral-900" placeholder="Nombre del grupo" />
+            <button class="h-11 px-4 w-full md:w-auto rounded-xl md:mb-0 mb-1 bg-slate-900 text-white font-semibold hover:opacity-90">Filtrar</button>
+          </div>
+        </form>
+        <a href="{% url 'group_create' %}" class="h-11 w-full md:mb-0 mb-1 md:w-auto text-center px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold hover:opacity-90">Nuevo grupo</a>
+      </div>
+    </div>
+
+    <div class="mt-6 min-w-full border border-neutral-200 bg-neutral-100 rounded-md overflow-x-auto">
+      <table class="min-w-full border border-neutral-200 bg-neutral-100 rounded-md overflow-hidden">
+        <thead class="bg-slate-900 text-neutral-50 text-sm">
+          <tr>
+            <th class="px-4 py-3 w-12 text-center">N°</th>
+            <th class="px-4 py-3 text-left">Nombre</th>
+            <th class="px-4 py-3 text-left">Rol y Permisos</th>
+            <th class="px-4 py-3 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-neutral-50 text-sm">
+          {% for g in groups %}
+          <tr class="text-sm hover:bg-neutral-200">
+            <td class=" text-center font-medium ">{{ forloop.counter0|add:page_obj.start_index }}</td>
+            <td class="px-4 py-3 font-medium">{{ g.name }}</td>
+            <td class="px-4 py-3">{{ g.permissions.count }}</td>
+            <td class="px-4 py-3">
+              <div class="flex items-center justify-end gap-2">
+                <a href="{% url 'group_edit' g.pk %}"
+                   class="inline-flex items-center h-9 px-3 text-white rounded-lg  bg-amber-300 hover:bg-amber-400">
+                  <svg class="md:size-5 size-4  dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
+                  </svg>
+
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="px-4 py-8 text-center text-neutral-500">No hay grupos.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock content %}

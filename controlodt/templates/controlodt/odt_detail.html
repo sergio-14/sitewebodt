@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="min-h-screen p-16">
+    <h1 class="text-3xl text-slate-900 font-primary mb-3">Detalle de Orden de Trabajo Registrado</h1>
+
+    <div class="max-w-auto mx-auto">
+        
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <p class="text-sm text-slate-500 mt-1">Creado el {{ odt.creado_en|date:"d/m/Y H:i" }}</p>
+                        
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                            {% if odt.estado == 'APROBADA' %}bg-green-100 text-green-700
+                            {% elif odt.estado == 'REVISION' %}bg-blue-100 text-blue-700
+                            {% elif odt.estado == 'EN_EJECUCION' %}bg-amber-100 text-amber-700
+                            {% elif odt.estado == 'RECHAZADA' %}bg-red-100 text-red-700
+                            {% else %}bg-slate-100 text-slate-700{% endif %}"> 
+                            Estado: {{ odt.get_estado_display }}
+                        </span>
+                        
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                            {% if odt.prioridad == 'URGENTE' %}bg-red-100 text-red-700
+                            {% elif odt.prioridad == 'ALTA' %}bg-orange-100 text-orange-700
+                            {% elif odt.prioridad == 'MEDIA' %}bg-yellow-100 text-yellow-700
+                            {% else %}bg-slate-100 text-slate-700{% endif %}"> 
+                            Prioridad: {{ odt.get_prioridad_display }}
+                        </span>
+                    </div>
+                    <h1 class="text-3xl font-primary text-slate-900">Motivo: {{ odt.titulo }}</h1>
+                </div>
+                
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ odt.archivo_informe.url }}" target="_blank" class="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium transition-colors">
+                        Ver Imagen de la Maquinaria 
+                    </a>
+                </div>
+            </div>
+        </div>
+
+ 
+
+        <section class="">
+            <p class="text-sm text-slate-900 font-bold uppercase tracking-wider mb-2">Datos de la Maquinaria</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-3">
+
+                <div class="bg-white p-4 rounded-lg shadow text-center font-semibold">
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Maquina</p>
+                    <p class="text-sm font-semibold text-slate-900">{{ odt.maquinaria.nombre }}</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow text-center font-semibold">
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Código</p>
+                    <p class="text-sm font-semibold text-slate-900">{{ odt.maquinaria.codigo }}</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow text-center font-semibold">
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Tipo</p>
+                    <p class="text-sm font-semibold text-slate-900">{{ odt.maquinaria.tipo.nombre }}</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow text-center font-semibold">
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Estado</p>
+                    <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold
+                        {% if odt.maquinaria.estado == 'OPERATIVA' %}bg-green-100 text-green-700
+                        {% elif odt.maquinaria.estado == 'MANTENIMIENTO' %}bg-yellow-100 text-yellow-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ odt.maquinaria.get_estado_display }}
+                    </span>
+                </div>
+            </div>
+
+
+            <p class="text-sm text-slate-900 font-bold uppercase tracking-wider mb-2">Datos del Mantenimiento</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                <div class="bg-white p-4 col-span-2 rounded-lg shadow text-center font-semibold">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-900">Descripción del Trabajo</h2>
+                    </div>
+                    <div class="prose prose-sm max-w-none text-slate-700">
+                        {{ odt.descripcion|linebreaks }}
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 col-span-2 rounded-lg shadow text-center font-semibold">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-900">Observaciones</h2>
+                    </div>
+                    <div class="prose prose-sm max-w-none text-slate-700">
+                        {{ odt.observaciones|linebreaks }}
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+       
+        
+        <div class="mt-6 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900">Personal Involucrado</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <div class="border border-slate-200 rounded-xl p-5">
+                    <div class="text-center mb-4">
+                        <h3 class="text-sm font-bold text-black uppercase tracking-wider">Realizado por</h3>
+                    </div>
+                    
+                    {% if odt.creado_por %}
+                        <div class="flex flex-col items-center">
+                            {% if odt.creado_por.imagen %}
+                                <img src="{{ odt.creado_por.imagen.url }}" 
+                                    alt="{{ odt.creado_por.get_full_name }}" 
+                                    class="w-20 h-20 rounded-full object-cover ring-4 ring-blue-100 mb-3">
+                            {% else %}
+                                <div class="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-2xl ring-4 ring-blue-100 mb-3">
+                                    {{ odt.creado_por.nombre|first }}{{ odt.creado_por.apellido|first }}
+                                </div>
+                            {% endif %}
+                            
+                            <p class="text-base font-bold text-slate-900 text-center mb-1">
+                                {{ odt.creado_por.get_full_name }}
+                            </p>
+                            
+                            <div class="flex flex-wrap gap-1 justify-center mb-3">
+                                {% for g in odt.creado_por.groups.all %}
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                                        {{ g.name }}
+                                    </span>
+                                {% empty %}
+                                    <span class="text-xs text-slate-400 italic">Sin grupo asignado</span>
+                                {% endfor %}
+                            </div>
+                            
+                            {% if odt.creado_por.firma %}
+                                <div class="w-full pt-3 border-t border-slate-200">
+                                    <p class="text-xs text-slate-500 text-center mb-2">Firma</p>
+                                    <div class="bg-white p-2 rounded-lg border border-slate-200">
+                                        <img src="{{ odt.creado_por.firma.url }}" 
+                                            alt="Firma" 
+                                            class="h-16 w-full object-contain">
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 rounded-full bg-slate-200 mx-auto mb-3 flex items-center justify-center">
+                                <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <p class="text-sm text-slate-400 italic">No asignado</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="border border-slate-200 rounded-xl p-5 to-white">
+                    <div class="text-center mb-4">
+                        <h3 class="text-sm font-bold text-black uppercase tracking-wider">Revisado por</h3>
+                    </div>
+                    
+                    {% if odt.revisado_por %}
+                        <div class="flex flex-col items-center">
+                            {% if odt.revisado_por.imagen %}
+                                <img src="{{ odt.revisado_por.imagen.url }}" 
+                                    alt="{{ odt.revisado_por.get_full_name }}" 
+                                    class="w-20 h-20 rounded-full object-cover ring-4 ring-indigo-100 mb-3">
+                            {% else %}
+                                <div class="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-2xl ring-4 ring-indigo-100 mb-3">
+                                    {{ odt.revisado_por.nombre|first }}{{ odt.revisado_por.apellido|first }}
+                                </div>
+                            {% endif %}
+                            
+                            <p class="text-base font-bold text-slate-900 text-center mb-1">
+                                {{ odt.revisado_por.get_full_name }}
+                            </p>
+                            
+                            <div class="flex flex-wrap gap-1 justify-center mb-3">
+                                {% for g in odt.revisado_por.groups.all %}
+                                    <span class="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full font-medium">
+                                        {{ g.name }}
+                                    </span>
+                                {% empty %}
+                                    <span class="text-xs text-slate-400 italic">Sin grupo asignado</span>
+                                {% endfor %}
+                            </div>
+                            
+                            {% if odt.revisado_por.firma %}
+                                <div class="w-full pt-3 border-t border-slate-200">
+                                    <p class="text-xs text-slate-500 text-center mb-2">Firma</p>
+                                    <div class="bg-white p-2 rounded-lg border border-slate-200">
+                                        <img src="{{ odt.revisado_por.firma.url }}" 
+                                            alt="Firma" 
+                                            class="h-16 w-full object-contain">
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 rounded-full bg-slate-200 mx-auto mb-3 flex items-center justify-center">
+                                <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <p class="text-sm text-slate-400 italic">Pendiente de revisión</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="border border-slate-200 rounded-xl p-5 to-white">
+                    <div class="text-center mb-4">
+                        <h3 class="text-sm font-bold text-black uppercase tracking-wider">Aprobado por</h3>
+                    </div>
+                    
+                    {% if odt.aprobado_por %}
+                        <div class="flex flex-col items-center">
+                            {% if odt.aprobado_por.imagen %}
+                                <img src="{{ odt.aprobado_por.imagen.url }}" 
+                                    alt="{{ odt.aprobado_por.get_full_name }}" 
+                                    class="w-20 h-20 rounded-full object-cover ring-4 ring-green-100 mb-3">
+                            {% else %}
+                                <div class="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-2xl ring-4 ring-green-100 mb-3">
+                                    {{ odt.aprobado_por.nombre|first }}{{ odt.aprobado_por.apellido|first }}
+                                </div>
+                            {% endif %}
+                            
+                            <p class="text-base font-bold text-slate-900 text-center mb-1">
+                                {{ odt.aprobado_por.get_full_name }}
+                            </p>
+                            
+                            <div class="flex flex-wrap gap-1 justify-center mb-3">
+                                {% for g in odt.aprobado_por.groups.all %}
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                                        {{ g.name }}
+                                    </span>
+                                {% empty %}
+                                    <span class="text-xs text-slate-400 italic">Sin grupo asignado</span>
+                                {% endfor %}
+                            </div>
+                            
+                            {% if odt.aprobado_por.firma %}
+                                <div class="w-full pt-3 border-t border-slate-200">
+                                    <p class="text-xs text-slate-500 text-center mb-2">Firma</p>
+                                    <div class="bg-white p-2 rounded-lg border border-slate-200">
+                                        <img src="{{ odt.aprobado_por.firma.url }}" 
+                                            alt="Firma" 
+                                            class="h-16 w-full object-contain">
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 rounded-full bg-slate-200 mx-auto mb-3 flex items-center justify-center">
+                                <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <p class="text-sm text-slate-400 italic">Pendiente de aprobación</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

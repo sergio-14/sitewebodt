@@ -1,0 +1,10 @@
+{
+	"dependencies": {
+		"tailwindcss": "^4.1.17",
+		"@tailwindcss/cli": "^4.1.17"
+	},
+	"scripts": {
+    "watch:css": "tailwindcss -i ./controlodt/static/src/input.css -o ./controlodt/static/src/dist/styles.css --watch"
+  }
+
+}

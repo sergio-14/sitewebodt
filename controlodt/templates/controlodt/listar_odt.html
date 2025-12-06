@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="text-neutral-900">
+  <div class="max-w-auto mx-auto px-2 py-6">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-primary">Órdenes de Trabajo (ODT)</h1>
+        <p class="text-sm text-neutral-500">Total: {{ total }}</p>
+      </div>
+      <div>
+        <a href="{% url 'odt_create' %}?next={{ request.get_full_path|urlencode }}" class="h-11 px-5 py-2 rounded-md bg-green-500 text-white">+ Crear Nueva ODT</a>
+      </div>
+    </div>
+
+    <form method="get" class="mb-4">
+      <div class="flex gap-3 items-end">
+        <input name="q" placeholder="Buscar por título, maquinaria o código" value="{{ q }}"
+               class="w-full h-11 rounded-md border bg-neutral-100 border-neutral-300 px-3" />
+        <select name="estado" class="h-11 rounded-md border bg-neutral-100 border-neutral-300 px-3">
+          <option value="">Todos</option>
+          <option value="BORRADOR" {% if estado_selected == 'BORRADOR' %}selected{% endif %}>Borrador</option>
+          <option value="ASIGNADA" {% if estado_selected == 'ASIGNADA' %}selected{% endif %}>Asignada</option>
+          <option value="EN_EJECUCION" {% if estado_selected == 'EN_EJECUCION' %}selected{% endif %}>En ejecución</option>
+          <option value="REVISION" {% if estado_selected == 'REVISION' %}selected{% endif %}>Revisión</option>
+          <option value="APROBADA" {% if estado_selected == 'APROBADA' %}selected{% endif %}>Aprobada</option>
+          <option value="RECHAZADA" {% if estado_selected == 'RECHAZADA' %}selected{% endif %}>Rechazada</option>
+          <option value="CERRADA" {% if estado_selected == 'CERRADA' %}selected{% endif %}>Cerrada</option>
+        </select>
+        <select name="prioridad" class="h-11 rounded-md border bg-neutral-100 border-neutral-300 px-3">
+          <option value="">Todas prioridades</option>
+          <option value="BAJA" {% if prioridad_selected == 'BAJA' %}selected{% endif %}>Baja</option>
+          <option value="MEDIA" {% if prioridad_selected == 'MEDIA' %}selected{% endif %}>Media</option>
+          <option value="ALTA" {% if prioridad_selected == 'ALTA' %}selected{% endif %}>Alta</option>
+          <option value="URGENTE" {% if prioridad_selected == 'URGENTE' %}selected{% endif %}>Urgente</option>
+        </select>
+        <select name="per_page" class="h-11 rounded-md border bg-neutral-100 border-neutral-300 px-3">
+          {% for n in per_page_options %}<option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>{% endfor %}
+        </select>
+        <button class="h-11 px-4 rounded-md bg-amber-500 text-white">Filtrar</button>
+      </div>
+    </form>
+
+    <div class="mt-2 overflow-x-auto">
+      <table class="min-w-full border border-neutral-200 bg-neutral-100 rounded-md overflow-hidden">
+        <thead class="bg-slate-900 text-white">
+          <tr class="text-left text-sm">
+            <th class="px-4 py-3">#</th>
+            <th class="px-4 py-3">Maquinaria</th>
+            <th class="px-4 py-3">Título</th>
+            <th class="px-4 py-3">Prioridad</th>
+            <th class="px-4 py-3">Estado</th>
+            <th class="px-4 py-3">Creado por</th>
+            <th class="px-4 py-3 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-neutral-50">
+          {% for odt in page_obj.object_list %}
+          <tr class="hover:bg-neutral-200">
+            <td class="px-4 py-3">{{ forloop.counter0|add:page_obj.start_index }}</td>
+            <td class="px-4 py-3">{{ odt.maquinaria }} </td>
+            <td class="px-4 py-3">{{ odt.titulo }}</td>
+            <td class="px-4 py-3">{{ odt.get_prioridad_display }}</td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-1 rounded-full text-sm bg-green-50 text-green-700 border border-green-200">
+                {{ odt.get_estado_display }}
+              </span>
+            </td>
+            <td class="px-4 py-3">{% if odt.creado_por %}{{ odt.creado_por.get_full_name }}{% else %}&mdash;{% endif %}</td>
+            <td class="px-4 py-3 text-right">
+              <a href="{% url 'odt_detail' odt.pk %}" class="inline-flex items-center h-9 px-3 rounded-lg bg-slate-700 text-white">Ver Detalle</a>
+              <a href="{% url 'odt_detalle_pdf' odt.pk %}" target="_black" class="inline-flex items-center h-9 px-3 rounded-lg bg-blue-500 text-white ml-2">Generar Detalle</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="px-4 py-8 text-center text-neutral-500">No hay ODTs.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+      <div class="mt-4">
+        <!-- Reusa tu paginación -->
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

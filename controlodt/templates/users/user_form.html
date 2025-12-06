@@ -1,0 +1,178 @@
+{% extends 'base.html' %} {% load static %} {% block content %}
+<section class="text-neutral-900">
+  <div class="max-w-auto mx-auto px-4 py-8">
+    <div class="mb-6">
+      <h1 class="text-2xl md:text-3xl font-primary">{{ title }}</h1>
+      <p class="text-neutral-500 text-sm">Complete los campos y guarde los cambios.</p>
+    </div>
+
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next_url }}" />
+
+      <!-- Datos -->
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-5 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="col-span-1 md:col-span-4">
+          <label class="block text-sm font-medium mb-2">Foto de perfil</label>
+          <div class="flex items-center gap-4">
+            <img id="preview" src="{% if is_edit and user_obj.imagen %}{{ user_obj.imagen.url }}{% else %}{% static 'placeholder-avatar.png' %}{% endif %}" class="h-16 w-16 rounded-full object-cover border" alt="" />
+            <div class="flex-1">
+              {{ form.imagen.errors }}
+              <input type="file" name="imagen" id="id_imagen" class="block w-full text-sm text-neutral-700 file:mr-4 file:rounded-lg file:border-0 file:bg-neutral-900 file:px-4 file:py-2 file:text-white hover:file:opacity-90" />
+              <label class="mt-2 inline-flex items-center gap-2 text-sm">{{ form.remove_image }} {{ form.remove_image.label }}</label>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Nombre</label>
+          {{ form.nombre }} {% for e in form.nombre.errors %}
+          <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Apellido paterno</label>
+          {{ form.apellido }} {% for e in form.apellido.errors %}
+          <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Apellido materno</label>
+          {{ form.apellidoM }} {% for e in form.apellidoM.errors %}
+          <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Correo electrónico</label>
+          {{ form.email }} {% for e in form.email.errors %}
+          <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Carnet Identidad</label>
+          {{ form.dni }} {% for e in form.dni.errors %}
+          <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Teléfono</label>
+          {{ form.telefono }} {% for e in form.telefono.errors %}
+          <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium mb-1">Dirección</label>
+          {{ form.direccion }} {% for e in form.direccion.errors %}
+          <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div class="md:col-span-3">
+          <label class="block text-sm font-medium mb-1">Firma </label>
+          {{ form.firma }} {% for e in form.firma.errors %}
+          <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Grupos -->
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-5">
+        <div class="md:flex flex-row  items-center justify-between gap-3">
+          <label class="block text-sm font-medium">Grupos</label>
+          <div class="md:flex flex-row  items-center gap-2">
+            <input id="groupSearch" type="text" placeholder="Buscar grupo..." class="md:w-64 md:mb-0 mb-1 w-full h-10 rounded-lg border border-neutral-300 px-3 focus:outline-none focus:ring-2 focus:ring-neutral-900" />
+            <button type="button" id="groupsSelectAll" class="h-10 px-3 rounded-lg md:mb-0 mb-1 w-full text-white bg-slate-900 hover:bg-slate-950 text-sm">Seleccionar todos</button>
+            <button type="button" id="groupsClearAll" class="h-10 px-3 rounded-lg md:mb-0 mb-1 w-full text-white bg-slate-900 hover:bg-slate-950 text-sm">Quitar todos</button>
+          </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2" id="groupContainer">
+          {# usamos el queryset del campo para asegurar consistencia #} {% with qs=form.fields.groups.queryset selected_ids=form.groups.value %} {% for g in qs %}
+          <label class="flex items-center gap-3 group-item" data-text="{{ g.name|lower }}">
+            <input type="checkbox" name="{{ form.groups.html_name }}" value="{{ g.pk }}" class="rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900" {% if form.is_bound %} {% if selected_ids and g.pk|stringformat:'s' in selected_ids %}checked{% endif %} {% else %} {% if is_edit and user_obj and g in user_obj.groups.all %}checked{% endif %} {% endif %} >
+            <span class="text-sm">{{ g.name }}</span>
+          </label>
+          {% empty %}
+          <p class="text-sm text-neutral-500">No hay grupos disponibles.</p>
+          {% endfor %} {% endwith %}
+        </div>
+
+        {% for e in form.groups.errors %}
+        <p class="text-sm text-red-600 mt-2">{{ e }}</p>
+        {% endfor %}
+      </div>
+
+      <!-- Contraseñas -->
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% if not is_edit %}
+        <div>
+          <label class="block text-sm font-medium mb-1">Contraseña</label>
+          {{ form.password1 }} {% for e in form.password1.errors %}
+          <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Confirmar contraseña</label>
+          {{ form.password2 }} {% for e in form.password2.errors %}
+          <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div>
+          <label class="block text-sm font-medium mb-1">Nueva contraseña (opcional)</label>
+          {{ form.password1 }} {% for e in form.password1.errors %}
+          <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Confirmar nueva contraseña</label>
+          {{ form.password2 }} {% for e in form.password2.errors %}
+          <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Botones -->
+      <div class="flex items-center justify-end gap-3">
+        <a href="{{ next_url }}" class="h-11 px-5 rounded-xl border border-neutral-300 inline-flex items-center hover:bg-neutral-100">Cancelar</a>
+        <button type="submit" class="h-11 px-6 rounded-xl bg-neutral-900 text-white font-semibold hover:opacity-90">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Preview imagen
+    const input = document.getElementById("id_imagen");
+    const preview = document.getElementById("preview");
+    input?.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      preview.src = url;
+    });
+
+    // Filtro de grupos
+    const gSearch = document.getElementById("groupSearch");
+    const gItems = document.querySelectorAll("#groupContainer .group-item");
+    gSearch?.addEventListener("input", () => {
+      const term = gSearch.value.toLowerCase().trim();
+      gItems.forEach((li) => {
+        const txt = li.getAttribute("data-text") || "";
+        li.style.display = txt.includes(term) ? "" : "none";
+      });
+    });
+
+    // Select/Deselect all
+    const groupsSelectAll = document.getElementById("groupsSelectAll");
+    const groupsClearAll = document.getElementById("groupsClearAll");
+    const fieldNameGroups = "{{ form.groups.html_name|escapejs }}";
+
+    groupsSelectAll?.addEventListener("click", () => {
+      document.querySelectorAll(`#groupContainer input[name="${fieldNameGroups}"]`).forEach((cb) => (cb.checked = true));
+    });
+    groupsClearAll?.addEventListener("click", () => {
+      document.querySelectorAll(`#groupContainer input[name="${fieldNameGroups}"]`).forEach((cb) => (cb.checked = false));
+    });
+  </script>
+</section>
+{% endblock %}
