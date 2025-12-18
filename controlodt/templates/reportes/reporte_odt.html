@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="text-neutral-900">
+
+  <div class="max-w-auto mx-auto px-1 md:px-4 py-6">
+    
+    <!-- Header -->
+    <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-primary">Panel Analítico de ODT</h1>
+        <p class="text-neutral-500 text-sm">Visualización de rendimiento y estados de órdenes de trabajo</p>
+      </div>
+      <div class="flex gap-2">
+        <a href="{% url 'reporte_odt' %}" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+            Limpiar Filtros
+        </a>
+        
+        <a href="{% url 'reporte_odt_pdf' %}?{{ request.GET.urlencode }}"
+          class="px-4 py-2 text-sm font-medium text-white bg-amber-500 rounded-lg hover:opacity-90 transition shadow-sm">
+          Exportar PDF
+        </a>
+
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-neutral-100 mb-8 p-4 md:p-8">
+  <form method="get" class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      <div>
+        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">N° ODT</label>
+        <div class="relative">
+          <input type="number" name="n_odt" value="{{ request.GET.n_odt }}" placeholder="Ej: 1025"
+                 class="w-full h-12 rounded-xl border-none bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all outline-none text-sm shadow-inner px-4" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Maquinaria</label>
+        <select name="maquinaria" class="w-full h-12 rounded-xl border-none bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all outline-none text-sm cursor-pointer shadow-inner px-4">
+          <option value="">Todas las máquinas</option>
+          {% for m in filtros.maquinarias %}
+            <option value="{{ m.id }}" {% if request.GET.maquinaria == m.id|stringformat:"i" %}selected{% endif %}>{{ m.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Estado de ODT</label>
+        <select name="estado" class="w-full h-12 rounded-xl border-none bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all outline-none text-sm cursor-pointer shadow-inner px-4">
+          <option value="">Todos los estados</option>
+          {% for val, name in filtros.estados %}
+            <option value="{{ val }}" {% if request.GET.estado == val %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div>
+        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Creado por</label>
+        <input type="text" name="creado_por" value="{{ request.GET.creado_por }}" placeholder="Nombre del emisor"
+               class="w-full h-12 rounded-xl border-none bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all outline-none text-sm shadow-inner px-4" /> 
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Revisado por</label>
+        <input type="text" name="revisado_por" value="{{ request.GET.revisado_por }}" placeholder="Nombre del revisor"
+               class="w-full h-12 rounded-xl border-none bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all outline-none text-sm shadow-inner px-4" /> 
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Aprobado por</label>
+        <input type="text" name="aprobado_por" value="{{ request.GET.aprobado_por }}" placeholder="Nombre del aprobador"
+               class="w-full h-12 rounded-xl border-none bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all outline-none text-sm shadow-inner px-4" /> 
+      </div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-6 items-end justify-between border-t border-neutral-50 pt-6">
+      <div class="w-full lg:w-1/2">
+        <label class="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Rango de Fechas</label>
+        <div class="flex flex-col lg:flex-row gap-3">
+          <div class="flex-1">
+            <input type="date" name="fecha_inicio" value="{{ request.GET.fecha_inicio }}"
+                   class="w-full h-12 rounded-xl border-none bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all outline-none text-sm shadow-inner px-4">
+          </div>
+          <div class="flex-1">
+            <input type="date" name="fecha_fin" value="{{ request.GET.fecha_fin }}"
+                   class="w-full h-12 rounded-xl border-none bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all outline-none text-sm shadow-inner px-4">
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3 w-full lg:w-auto">
+        <a href="{{ request.path }}" class="flex-1 lg:flex-none h-12 px-6 rounded-xl border border-neutral-200 text-neutral-500 font-bold text-sm flex items-center justify-center hover:bg-neutral-50 transition-all">
+          Limpiar
+        </a>
+        <button type="submit" class="flex-1 lg:flex-none h-12 px-10 rounded-xl bg-amber-500 text-white font-bold text-sm shadow-lg hover:shadow-red-200/50 transition-all active:scale-95 flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+          Aplicar Filtros
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+   
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-blue-100 rounded p-4 text-center">
+        <span class="block text-sm text-gray-600">Total ODT</span>
+        <span class="text-xl font-bold">{{ total_registros }}</span>
+    </div>
+    <div class="bg-green-100 rounded p-4 text-center">
+        <span class="block text-sm text-gray-600">Total Aprobadas</span>
+        <span class="text-xl font-bold">{{ total_aprobadas }}</span>
+    </div>
+    <div class="bg-yellow-100 rounded p-4 text-center">
+        <span class="block text-sm text-gray-600">Total en Revisión</span>
+        <span class="text-xl font-bold">{{ total_revision }}</span>
+    </div>
+    <div class="bg-purple-100 rounded p-4 text-center">
+        <span class="block text-sm text-gray-600">Total en Solicitud</span>
+        <span class="text-xl font-bold">{{ total_solicitud }}</span>
+    </div>
+</div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden mb-8">
+      <div class="px-6 py-4 bg-slate-900">
+        <h2 class="text-sm font-bold text-white uppercase tracking-wider">Órdenes de Trabajo Filtradas</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full border-collapse text-sm">
+          <thead class="bg-slate-900 text-left text-xs text-white">
+            <tr>
+              <th class="px-4 py-2">Fecha </th>
+              <th class="px-4 whitespace-nowrap py-2">N° ODT</th>
+              <th class="px-4 py-2">Línea</th>
+              <th class="px-4 py-2">Equipo</th>
+              <th class="px-4 py-2">Estado</th>
+              <th class="px-4 py-2">Solicitante</th>
+              <th class="px-4 py-2">Enc. Revisión</th>
+              <th class="px-4 py-2">Enc. Aprobación</th>
+              <th class="px-4 py-2">Referencia</th>
+             
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-200">
+            {% for odt in odts %}
+              <tr class="hover:bg-neutral-100 text-xs">
+                <td class="px-4 py-2">{% if odt.fecha_programada %}{{ odt.fecha_programada|date:"d/m/Y" }}{% else %}-{% endif %}</td>
+                <td class="px-4 py-2 whitespace-nowrap font-medium">{{ odt.n_odt|stringformat:"03d" }}</td>
+                <td class="px-4 py-2">{{ odt.maquinaria.tipo }}</td>
+                <td class="px-4 py-2">{{ odt.maquinaria.nombre }}</td>
+                <td class="px-4 py-2">{{ odt.get_estado_display }}</td>
+                <td class="px-4 py-2 whitespace-nowrap">{{ odt.creado_por.get_full_name }}</td>
+                <td class="px-4 py-2 whitespace-nowrap">{% if odt.revisado_por %}{{ odt.revisado_por.get_full_name }}{% else %}Pendiente{% endif %}</td>
+                <td class="px-4 py-2 whitespace-nowrap">{% if odt.aprobado_por %}{{ odt.aprobado_por.get_full_name }}{% else %}Pendiente{% endif %}</td>
+                <td class="px-4 py-2">{{ odt.titulo }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="px-4 py-8 text-center text-neutral-500">No se encontraron registros</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        
+      </div>
+      <!-- Paginación -->
+{% if odts.has_other_pages %}
+<div class="flex items-center justify-between px-6 py-4 bg-white border-t border-neutral-200">
+  <div class="flex-1 flex justify-between sm:hidden">
+    <!-- Móvil -->
+    {% if odts.has_previous %}
+      <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ odts.previous_page_number }}" 
+         class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+        Anterior
+      </a>
+    {% else %}
+      <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed">
+        Anterior
+      </span>
+    {% endif %}
+    
+    {% if odts.has_next %}
+      <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ odts.next_page_number }}" 
+         class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+        Siguiente
+      </a>
+    {% else %}
+      <span class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed">
+        Siguiente
+      </span>
+    {% endif %}
+  </div>
+
+  <!-- Desktop -->
+  <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+    <div>
+      <p class="text-sm text-gray-700">
+        Mostrando
+        <span class="font-medium">{{ odts.start_index }}</span>
+        a
+        <span class="font-medium">{{ odts.end_index }}</span>
+        de
+        <span class="font-medium">{{ odts.paginator.count }}</span>
+        resultados
+      </p>
+    </div>
+    <div>
+      <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+        <!-- Botón Anterior -->
+        {% if odts.has_previous %}
+          <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ odts.previous_page_number }}" 
+             class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+            <span class="sr-only">Anterior</span>
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+          </a>
+        {% else %}
+          <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed">
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+          </span>
+        {% endif %}
+
+        <!-- Números de página -->
+        {% for num in odts.paginator.page_range %}
+          {% if odts.number == num %}
+            <span class="z-10 bg-amber-500 border-amber-500 text-white relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+              {{ num }}
+            </span>
+          {% elif num > odts.number|add:'-3' and num < odts.number|add:'3' %}
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" 
+               class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+              {{ num }}
+            </a>
+          {% endif %}
+        {% endfor %}
+
+        <!-- Botón Siguiente -->
+        {% if odts.has_next %}
+          <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ odts.next_page_number }}" 
+             class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+            <span class="sr-only">Siguiente</span>
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+          </a>
+        {% else %}
+          <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed">
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+          </span>
+        {% endif %}
+      </nav>
+    </div>
+  </div>
+</div>
+{% endif %}
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center">
+        <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Distribución por Estado</h3>
+        <canvas id="estadoChart" class="w-full h-48"></canvas>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center">
+        <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Top 5 Maquinarias</h3>
+        <canvas id="maquinariaChart" class="w-full h-48"></canvas>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center">
+        <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Líneas de Trabajo</h3>
+        <canvas id="tipoChart" class="w-full h-48"></canvas>
+      </div>
+    </div>
+
+    <!-- Tabla valorización mensual -->
+    <div class="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden mb-8">
+      <div class="px-6 py-4 bg-slate-900">
+        <h2 class="text-sm font-bold text-white uppercase tracking-wider">Valorización Anual: Distribución de Cargas por Mes</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-left border-collapse">
+          <thead class="bg-slate-900 text-white text-sm">
+            <tr>
+              <th class="px-4 py-3">Estado</th>
+              {% for mes in meses_cabecera %}
+                <th class="px-3 py-3 text-center">{{ mes }}</th>
+              {% endfor %}
+              <th class="px-6 py-3 text-center bg-gray-100 text-gray-900">Total</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-200 text-sm">
+            {% for fila in reporte_mensual %}
+              <tr class="hover:bg-neutral-100">
+                <td class="px-6 py-4 font-semibold">{{ fila.estado }}</td>
+                {% for cant in fila.meses %}
+                  <td class="px-3 py-4 text-center">{% if cant > 0 %}{{ cant }}{% else %}-{% endif %}</td>
+                {% endfor %}
+                <td class="px-6 py-4 text-center font-bold">{{ fila.total_fila }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+
+
+  </div>
+
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  // Distribución por Estado
+  new Chart(document.getElementById('estadoChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: [{% for item in stats_estado %}'{{ item.estado }}',{% endfor %}],
+      datasets: [{
+        data: [{% for item in stats_estado %}{{ item.porcentaje|stringformat:".1f" }},{% endfor %}],
+        backgroundColor: ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6']
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+
+  // Top 5 Maquinarias
+  new Chart(document.getElementById('maquinariaChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: [{% for item in stats_maquinaria|slice:":5" %}'{{ item.maquinaria__nombre }}',{% endfor %}],
+      datasets: [{
+        data: [{% for item in stats_maquinaria|slice:":5" %}{{ item.total }},{% endfor %}],
+        backgroundColor: ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6']
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+
+  // Líneas de Trabajo
+  new Chart(document.getElementById('tipoChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: [{% for item in stats_tipo %}'{{ item.maquinaria__tipo__nombre }}',{% endfor %}],
+      datasets: [{
+        data: [{% for item in stats_tipo %}{{ item.porcentaje|stringformat:".1f" }},{% endfor %}],
+        backgroundColor: ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6']
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+
+});
+</script>
+
+{% endblock %}

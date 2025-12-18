@@ -62,7 +62,7 @@ from .forms import UserCreateForm, UserUpdateForm
 from django.utils.http import url_has_allowed_host_and_scheme
 
 @login_required
-#@permission_required('dicomar.view_user', raise_exception=True)
+@permission_required('controlodt.view_user', raise_exception=True)
 def listar_user(request):
     q = (request.GET.get("q") or "").strip()
     estado = request.GET.get("estado") or "todos"   
@@ -141,9 +141,42 @@ def toggle_active_user(request, pk):
    
     return redirect(base)
 
+from .forms import MiPerfilForm, CambiarPasswordForm
+from django.contrib.auth import login, logout, update_session_auth_hash
 
 @login_required
-#@permission_required('dicomar.add_user', raise_exception=True)
+def mi_perfil(request):
+    user = request.user
+
+    if request.method == 'POST':
+        if 'guardar_perfil' in request.POST:
+            perfil_form = MiPerfilForm(request.POST, request.FILES, instance=user)
+            password_form = CambiarPasswordForm(user)  
+            if perfil_form.is_valid():
+                perfil_form.save()
+                messages.success(request, 'Perfil actualizado correctamente.')
+                return redirect('dashboard')
+
+        elif 'cambiar_password' in request.POST:
+            perfil_form = MiPerfilForm(instance=user)  
+            password_form = CambiarPasswordForm(user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Contraseña actualizada correctamente.')
+                return redirect('dashboard')
+
+    else:
+        perfil_form = MiPerfilForm(instance=user)
+        password_form = CambiarPasswordForm(user)
+
+    return render(request, 'users/mi_perfil.html', {
+        'perfil_form': perfil_form,
+        'password_form': password_form,
+    })
+
+@login_required
+@permission_required('controlodt.add_user', raise_exception=True)
 def user_create(request):
     next_url = request.GET.get("next") or reverse("listar_user")
     if request.method == "POST":
@@ -163,7 +196,7 @@ def user_create(request):
 
 
 @login_required
-#@permission_required('dicomar.change_user', raise_exception=True)
+@permission_required('controlodt.change_user', raise_exception=True)
 def user_edit(request, pk):
     user_obj = get_object_or_404(User, pk=pk)
     next_url = request.GET.get("next") or reverse("listar_user")
@@ -293,7 +326,7 @@ from .forms import TipoMaquinariaForm, MaquinariaForm
 
 # ----- TipoMaquinaria -----
 @login_required
-#@permission_required('controlodt.view_tipomaquinaria', raise_exception=True)
+@permission_required('controlodt.view_user', raise_exception=True)
 def tipo_list(request):
     q = request.GET.get('q', '').strip()
     per_page = int(request.GET.get('per_page', 10))
@@ -317,7 +350,7 @@ def tipo_list(request):
 
 
 @login_required
-#@permission_required('controlodt.add_tipomaquinaria', raise_exception=True)
+@permission_required('controlodt.add_user', raise_exception=True)
 def tipo_create(request):
     if request.method == 'POST':
         form = TipoMaquinariaForm(request.POST)
@@ -328,11 +361,10 @@ def tipo_create(request):
             return redirect(next_url)
     else:
         form = TipoMaquinariaForm()
-    return render(request, 'maquinaria/tipo_maquinaria_form.html', {'form': form, 'title': 'Nuevo Tipo de Maquinaria', 'next_url': request.GET.get('next', reverse('tipo_list'))})
-
+    return render(request, 'maquinaria/tipo_maquinaria_form.html', {'form': form, 'title': 'Nueva Línea de Trabajo', 'next_url': request.GET.get('next', reverse('tipo_list'))})
 
 @login_required
-#@permission_required('controlodt.change_tipomaquinaria', raise_exception=True)
+@permission_required('controlodt.change_user', raise_exception=True)
 def tipo_edit(request, pk):
     obj = get_object_or_404(TipoMaquinaria, pk=pk)
     if request.method == 'POST':
@@ -349,7 +381,7 @@ def tipo_edit(request, pk):
 
 # ----- Maquinaria -----
 @login_required
-#@permission_required('controlodt.view_maquinaria', raise_exception=True)
+@permission_required('controlodt.view_user', raise_exception=True)
 def maquinaria_list(request):
     q = request.GET.get('q', '').strip()
     tipo = request.GET.get('tipo', '')
@@ -385,7 +417,7 @@ def maquinaria_list(request):
 
 
 @login_required
-#@permission_required('controlodt.add_maquinaria', raise_exception=True)
+@permission_required('controlodt.add_user', raise_exception=True)
 def maquinaria_create(request):
     if request.method == 'POST':
         form = MaquinariaForm(request.POST)
@@ -395,11 +427,11 @@ def maquinaria_create(request):
             return redirect(request.POST.get('next') or reverse('maquinaria_list'))
     else:
         form = MaquinariaForm()
-    return render(request, 'maquinaria/maquinaria_form.html', {'form': form, 'title': 'Nueva Maquinaria', 'next_url': request.GET.get('next', reverse('maquinaria_list'))})
+    return render(request, 'maquinaria/maquinaria_form.html', {'form': form, 'title': 'Nuevo Equipo de Trabajo', 'next_url': request.GET.get('next', reverse('maquinaria_list'))})
 
 
 @login_required
-#@permission_required('controlodt.change_maquinaria', raise_exception=True)
+@permission_required('controlodt.change_user', raise_exception=True)
 def maquinaria_edit(request, pk):
     obj = get_object_or_404(Maquinaria, pk=pk)
     if request.method == 'POST':
@@ -410,15 +442,32 @@ def maquinaria_edit(request, pk):
             return redirect(request.POST.get('next') or reverse('maquinaria_list'))
     else:
         form = MaquinariaForm(instance=obj)
-    return render(request, 'maquinaria/maquinaria_form.html', {'form': form, 'title': f'Editar maquinaria: {obj.nombre}', 'next_url': request.GET.get('next', reverse('maquinaria_list'))})
+    return render(request, 'maquinaria/maquinaria_form.html', {'form': form, 'title': f'Editar Equipo: {obj.nombre}', 'next_url': request.GET.get('next', reverse('maquinaria_list'))})
 
+def cambiar_estado_maquinaria(request, pk):
+    if request.method == 'POST':
+        maquinaria = get_object_or_404(Maquinaria, pk=pk)
+        nuevo_estado = request.POST.get('nuevo_estado')
+        
+        # Validar que el estado enviado sea uno de los permitidos
+        if nuevo_estado in Maquinaria.Estado.values:
+            estado_anterior = maquinaria.estado
+            maquinaria.estado = nuevo_estado
+            maquinaria.save()
+            
+            # Aquí podrías disparar la creación de ODT si usas el método needs_ot_creation
+            messages.success(request, f'Estado de {maquinaria.codigo} actualizado a {maquinaria.get_estado_display()}')
+        else:
+            messages.error(request, 'Estado no válido.')
+            
+    return redirect('maquinaria_list')
 
 from django.utils import timezone
 from .models import RegistroODT, Maquinaria
 from .forms import RegistroODTForm
 
 @login_required
-#@permission_required('controlodt.view_registroodt', raise_exception=True)
+@permission_required('controlodt.view_user', raise_exception=True)
 def odt_list(request):
     q = request.GET.get('q', '').strip()
     estado = request.GET.get('estado', '')
@@ -452,28 +501,40 @@ def odt_list(request):
 def user_in_group(user, group_name):
     return user.groups.filter(name=group_name).exists()
 
-
+    
 @login_required
+@permission_required('controlodt.add_registroot', raise_exception=True) # Usamos el permiso correcto de ODT
 def odt_create(request):
-    if not user_in_group(request.user, 'Operador'): 
-        messages.error(request, 'No tienes permisos para crear ODT.')
-        return redirect('odt_list')
-
     if request.method == 'POST':
         form = RegistroODTForm(request.POST, request.FILES)
+        # Importante: También debemos filtrar en el POST para validar que no enviaron una ID prohibida
+        form.fields['maquinaria'].queryset = Maquinaria.objects.exclude(
+            estado__in=[
+                Maquinaria.Estado.OPERATIVA,
+                Maquinaria.Estado.DADO_BAJA,
+                Maquinaria.Estado.EN_MANTENIMIENTO
+            ]
+        )
+        
         if form.is_valid():
             odt = form.save(commit=False)
             odt.creado_por = request.user
-            odt.estado = RegistroODT.EstadoODT.REVISION 
-           
+            odt.estado = RegistroODT.EstadoODT.SOLICITUD
             odt.save()
             
             messages.success(request, 'ODT creada y enviada a revisión del Supervisor.')
             return redirect(request.POST.get('next') or reverse('odt_list'))
     else:
         form = RegistroODTForm()
+        # --- AQUÍ APLICAMOS EL FILTRO ---
+        form.fields['maquinaria'].queryset = Maquinaria.objects.exclude(
+            estado__in=[
+                Maquinaria.Estado.OPERATIVA,
+                Maquinaria.Estado.DADO_BAJA,
+                Maquinaria.Estado.EN_MANTENIMIENTO
+            ]
+        )
         
-   
     return render(request, 'controlodt/odt_form.html', {
         'form': form, 
         'title': 'Nuevo Formulario Orden de Trabajo', 
@@ -481,7 +542,7 @@ def odt_create(request):
     })
 
 @login_required
-
+@permission_required('controlodt.change_user', raise_exception=True)
 def odt_edit(request, pk):
     odt = get_object_or_404(RegistroODT, pk=pk)
     if request.method == 'POST':
@@ -504,7 +565,6 @@ def odt_detail(request, pk):
 
 # ---------- ACCIONES DEL FLUJO ----------
 @login_required
-
 def odt_request_review(request, pk):
     """Solicitar revisión: cambia estado a REVISION (quien lo pidió queda como creado_por)"""
     odt = get_object_or_404(RegistroODT, pk=pk)
@@ -558,7 +618,7 @@ def mis_notificaciones(request):
 
     if is_supervisor:
         para_revisar = RegistroODT.objects.filter(
-            estado=RegistroODT.EstadoODT.REVISION,
+            estado=RegistroODT.EstadoODT.SOLICITUD,
             revisado_por__isnull=True
         ).order_by('-creado_en')
 
@@ -592,17 +652,24 @@ def mis_notificaciones(request):
 @login_required
 def odt_aprobar_revision(request, pk):
     odt = get_object_or_404(RegistroODT, pk=pk)
+    
     if not request.user.groups.filter(name='Supervisor').exists():
         messages.error(request, "Permiso denegado.")
         return redirect('mis_notificaciones')
 
-    if odt.estado == RegistroODT.EstadoODT.REVISION and odt.revisado_por is None:
-        odt.aprobar_revision(request.user) 
+    # Cambiado: revisar si la ODT está en SOLICITUD y no ha sido revisada
+    if odt.estado == RegistroODT.EstadoODT.SOLICITUD and odt.revisado_por is None:
+        odt.aprobar_revision(request.user)  # esto debe cambiar estado a REVISION
+        # Si tu método aprobar_revision no cambia el estado, cámbialo también
+        odt.estado = RegistroODT.EstadoODT.REVISION
+        odt.save(update_fields=['revisado_por', 'estado'])
+        
         messages.success(request, f"ODT #{odt.pk} revisada y pasada al Jefe de Área.")
     else:
         messages.warning(request, "Esta ODT no está pendiente de su revisión.")
         
     return redirect('mis_notificaciones')
+
 
 @login_required
 def odt_denegar_revision(request, pk):
@@ -612,21 +679,18 @@ def odt_denegar_revision(request, pk):
         messages.error(request, "Permiso denegado.")
         return redirect('mis_notificaciones')
 
-    if odt.estado == RegistroODT.EstadoODT.REVISION and odt.revisado_por is None:
-        
-   
-        odt.revisado_por = request.user 
-        
-       
+    # Cambiado: revisar si la ODT está en SOLICITUD y no ha sido revisada
+    if odt.estado == RegistroODT.EstadoODT.SOLICITUD and odt.revisado_por is None:
+        odt.revisado_por = request.user
         odt.estado = RegistroODT.EstadoODT.RECHAZADA
-        
-        odt.save(update_fields=['estado', 'revisado_por']) 
+        odt.save(update_fields=['estado', 'revisado_por'])
 
         messages.error(request, f"ODT #{odt.pk} rechazada. El estado ha cambiado a 'Rechazada'.")
     else:
         messages.warning(request, "Esta ODT no está pendiente de su revisión.")
         
     return redirect('mis_notificaciones')
+
 
 @login_required
 def odt_aprobar(request, pk):
@@ -676,69 +740,428 @@ from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import get_template
 from django.http import HttpResponse
+from urllib.parse import urlparse
+from django.conf import settings
+from django.contrib.staticfiles import finders
 
 from xhtml2pdf import pisa 
 
 from .models import RegistroODT 
+import os
+from django.conf import settings
+
 
 def link_callback(uri, rel):
     """
-    Convierte URI locales (ej. /media/firma.png) a rutas de sistema de archivos.
+    Convierte URLs de STATIC y MEDIA en rutas absolutas del sistema
+    compatibles con xhtml2pdf (funciona en desarrollo y producción).
     """
 
-    if uri.startswith(settings.STATIC_URL):
-        path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, ""))
-    
- 
-    elif uri.startswith(settings.MEDIA_URL):
-        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
-        
-    else:
+    parsed_uri = urlparse(uri)
+    uri_path = parsed_uri.path
 
-        return uri
-    
- 
-    if not os.path.isfile(path):
-        raise Exception(
-            'Ruta de imagen no válida: %s' % path
+    # ===== MEDIA =====
+    if settings.MEDIA_URL and uri_path.startswith(settings.MEDIA_URL):
+        path = os.path.join(
+            settings.MEDIA_ROOT,
+            uri_path.replace(settings.MEDIA_URL, "").lstrip("/")
         )
-    return path
+        if os.path.isfile(path):
+            return path
+
+    # ===== STATIC =====
+    if settings.STATIC_URL and uri_path.startswith(settings.STATIC_URL):
+        rel_path = uri_path.replace(settings.STATIC_URL, "").lstrip("/")
+
+        # 1️⃣ Desarrollo (STATICFILES_DIRS)
+        absolute_path = finders.find(rel_path)
+        if absolute_path:
+            return absolute_path
+
+        # 2️⃣ Producción (STATIC_ROOT)
+        if settings.STATIC_ROOT:
+            path = os.path.join(settings.STATIC_ROOT, rel_path)
+            if os.path.isfile(path):
+                return path
+
+    # ===== RUTA ABSOLUTA =====
+    if os.path.isabs(uri_path) and os.path.isfile(uri_path):
+        return uri_path
+
+    raise Exception(f'Archivo no encontrado: {uri}')
+
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
 
 
-def render_to_pdf(template_src, context_dict={}):
+def render_to_pdf(template_src, context):
     template = get_template(template_src)
-    html = template.render(context_dict)
-    
+    html = template.render(context)
+
     response = HttpResponse(content_type='application/pdf')
-    
-   
     response['Content-Disposition'] = 'inline; filename="detalle_odt.pdf"'
 
-   
     pisa_status = pisa.CreatePDF(
-        html, 
-        dest=response, 
-  
-        link_callback=link_callback 
+        html,
+        dest=response,
+        link_callback=link_callback
     )
-    
-   
+
     if pisa_status.err:
-       
-        return HttpResponse('Tuvimos algunos errores al generar el PDF. <pre>' + html + '</pre>')
-        
+        return HttpResponse(
+            'Error al generar PDF <pre>%s</pre>' % html
+        )
+
     return response
 
+from django.shortcuts import get_object_or_404
+from .models import RegistroODT
 
 
 def odt_detalle_pdf(request, pk):
-   
     odt = get_object_or_404(RegistroODT, pk=pk)
-    
+
     context = {
         'odt': odt,
         'title': f'Detalle ODT #{odt.pk}',
         'pagesize': 'A4',
     }
+
+    return render_to_pdf(
+        'controlodt/odt_detalle_pdf.html',
+        context
+    )
+
+
+from django.shortcuts import render
+from django.views.generic import ListView
+from django.db.models import Count, Q
+from django.db.models.functions import ExtractMonth
+from .models import RegistroODT, Maquinaria, TipoMaquinaria, User
+
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Count, Q
+
+@login_required
+@permission_required('controlodt.estadisticas', raise_exception=True)
+def reporte_odt_view(request):
+    # --- 1. Obtención de filtros desde GET ---
+    n_odt = request.GET.get('n_odt')
+    maquinaria_id = request.GET.get('maquinaria')
+    tipo_id = request.GET.get('tipo_maquinaria')
+    prioridad = request.GET.get('prioridad')
+    creado_por = request.GET.get('creado_por')
+    estado = request.GET.get('estado')
+    aprobado_por = request.GET.get('aprobado_por')
+    revisado_por = request.GET.get('revisado_por')
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+
+    # --- 2. Aplicar Filtros ---
+    queryset = RegistroODT.objects.all().order_by('-creado_en')
+
+    if n_odt:
+        queryset = queryset.filter(n_odt=n_odt)
+    if maquinaria_id:
+        queryset = queryset.filter(maquinaria_id=maquinaria_id)
+    if tipo_id:
+        queryset = queryset.filter(maquinaria__tipo_id=tipo_id)
+    if prioridad:
+        queryset = queryset.filter(prioridad=prioridad)
+    if estado:
+        queryset = queryset.filter(estado=estado)
+    if creado_por:
+        queryset = queryset.filter(
+            Q(creado_por__nombre__icontains=creado_por) |
+            Q(creado_por__apellido__icontains=creado_por) |
+            Q(creado_por__apellidoM__icontains=creado_por)
+        )
+    if revisado_por:
+        queryset = queryset.filter(
+            Q(revisado_por__nombre__icontains=revisado_por) |
+            Q(revisado_por__apellido__icontains=revisado_por) |
+            Q(revisado_por__apellidoM__icontains=revisado_por)
+        )
+    if aprobado_por:
+        queryset = queryset.filter(
+            Q(aprobado_por__nombre__icontains=aprobado_por) |
+            Q(aprobado_por__apellido__icontains=aprobado_por) |
+            Q(aprobado_por__apellidoM__icontains=aprobado_por)
+        )
+    if fecha_inicio and fecha_fin:
+        queryset = queryset.filter(creado_en__range=[fecha_inicio, fecha_fin])
+
+    # --- Totales ---
+    total_registros = queryset.count()
+    total_aprobadas = queryset.filter(estado=RegistroODT.EstadoODT.APROBADA).count()
+    total_revision = queryset.filter(estado=RegistroODT.EstadoODT.REVISION).count()
+    total_solicitud = queryset.filter(estado=RegistroODT.EstadoODT.SOLICITUD).count()
+
+    # --- 3. Paginación ---
+    page = request.GET.get('page', 1)
+    paginator = Paginator(queryset, 30)  # 25 registros por página
     
-    return render_to_pdf('controlodt/odt_detalle_pdf.html', context)
+    try:
+        odts = paginator.page(page)
+    except PageNotAnInteger:
+        odts = paginator.page(1)
+    except EmptyPage:
+        odts = paginator.page(paginator.num_pages)
+
+    # --- 4. Estadísticas para gráficos ---
+    # Distribución por estado
+    stats_estado_raw = queryset.values('estado').annotate(total=Count('estado')).order_by('-total')
+    stats_estado = []
+    for item in stats_estado_raw:
+        estado_display = dict(RegistroODT.EstadoODT.choices).get(item['estado'], item['estado'])
+        porcentaje = (item['total'] / total_registros * 100) if total_registros > 0 else 0
+        stats_estado.append({
+            'estado': estado_display,
+            'total': item['total'],
+            'porcentaje': porcentaje
+        })
+
+    # Top maquinarias
+    stats_maquinaria = queryset.values('maquinaria__nombre').annotate(
+        total=Count('maquinaria__nombre')
+    ).order_by('-total')
+    
+    for item in stats_maquinaria:
+        item['porcentaje'] = (item['total'] / total_registros * 100) if total_registros > 0 else 0
+
+    # Distribución por tipo
+    stats_tipo = queryset.values('maquinaria__tipo__nombre').annotate(
+        total=Count('maquinaria__tipo__nombre')
+    ).order_by('-total')
+    
+    for item in stats_tipo:
+        item['porcentaje'] = (item['total'] / total_registros * 100) if total_registros > 0 else 0
+
+    # --- 5. Valorización Mensual (Enero a Diciembre) ---
+    meses_nombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    
+    reporte_mensual = []
+    for cod_estado, nombre_estado in RegistroODT.EstadoODT.choices:
+        conteos_mes = []
+        for mes in range(1, 13):
+            cantidad = queryset.filter(estado=cod_estado, creado_en__month=mes).count()
+            conteos_mes.append(cantidad)
+        reporte_mensual.append({
+            'estado': nombre_estado,
+            'meses': conteos_mes,
+            'total_fila': sum(conteos_mes)
+        })
+
+    context = {
+        'odts': odts,  # Objeto paginado
+        'total_registros': total_registros,
+        'total_aprobadas': total_aprobadas,
+        'total_revision': total_revision,
+        'total_solicitud': total_solicitud,
+        'stats_estado': stats_estado,
+        'stats_tipo': stats_tipo,
+        'stats_maquinaria': stats_maquinaria,
+        'reporte_mensual': reporte_mensual,
+        'meses_cabecera': meses_nombres,
+        'filtros': {
+            'maquinarias': Maquinaria.objects.all(),
+            'tipos': TipoMaquinaria.objects.all(),
+            'usuarios': User.objects.all(),
+            'estados': RegistroODT.EstadoODT.choices,
+            'prioridades': RegistroODT.prioridad_choices,
+        }
+    }
+
+    return render(request, 'reportes/reporte_odt.html', context)
+
+import base64
+from io import BytesIO
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from django.db.models import Count, Q
+from datetime import datetime
+
+
+class PDFStaticResolver:
+    def __init__(self, link):
+        self.link = link
+
+    def __call__(self, uri, rel):
+        if uri.startswith(settings.STATIC_URL):
+            path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, ""))
+        elif uri.startswith(settings.MEDIA_URL):
+            path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
+        else:
+            return uri
+        return path
+
+
+def generar_grafico_base64(labels, data, title, colors=None):
+    """Genera un gráfico de dona y lo retorna como base64"""
+    if colors is None:
+        colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
+    
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.pie(data, labels=labels, autopct='%1.1f%%', colors=colors[:len(data)], startangle=90)
+    ax.set_title(title, fontsize=12, fontweight='bold', pad=20)
+    
+    buffer = BytesIO()
+    plt.tight_layout()
+    plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+    buffer.seek(0)
+    image_base64 = base64.b64encode(buffer.read()).decode()
+    plt.close()
+    
+    return f"data:image/png;base64,{image_base64}"
+
+
+def reporte_odt_pdf(request):
+    queryset = RegistroODT.objects.all()
+
+    # --- filtros ---
+    if request.GET.get('n_odt'):
+        queryset = queryset.filter(n_odt=request.GET['n_odt'])
+
+    if request.GET.get('maquinaria'):
+        queryset = queryset.filter(maquinaria_id=request.GET['maquinaria'])
+
+    if request.GET.get('tipo_maquinaria'):
+        queryset = queryset.filter(maquinaria__tipo_id=request.GET['tipo_maquinaria'])
+
+    if request.GET.get('prioridad'):
+        queryset = queryset.filter(prioridad=request.GET['prioridad'])
+
+    if request.GET.get('estado'):
+        queryset = queryset.filter(estado=request.GET['estado'])
+
+    if request.GET.get('creado_por'):
+        txt = request.GET['creado_por']
+        queryset = queryset.filter(
+            Q(creado_por__nombre__icontains=txt) |
+            Q(creado_por__apellido__icontains=txt) |
+            Q(creado_por__apellidoM__icontains=txt)
+        )
+
+    if request.GET.get('revisado_por'):
+        txt = request.GET['revisado_por']
+        queryset = queryset.filter(
+            Q(revisado_por__nombre__icontains=txt) |
+            Q(revisado_por__apellido__icontains=txt) |
+            Q(revisado_por__apellidoM__icontains=txt)
+        )
+
+    if request.GET.get('aprobado_por'):
+        txt = request.GET['aprobado_por']
+        queryset = queryset.filter(
+            Q(aprobado_por__nombre__icontains=txt) |
+            Q(aprobado_por__apellido__icontains=txt) |
+            Q(aprobado_por__apellidoM__icontains=txt)
+        )
+
+    # --- totales ---
+    total_registros = queryset.count()
+    total_aprobadas = queryset.filter(estado=RegistroODT.EstadoODT.APROBADA).count()
+    total_revision = queryset.filter(estado=RegistroODT.EstadoODT.REVISION).count()
+    total_solicitud = queryset.filter(estado=RegistroODT.EstadoODT.SOLICITUD).count()
+
+    # --- Estadísticas para gráficos ---
+    # Distribución por estado
+    stats_estado = queryset.values('estado').annotate(
+        total=Count('id')
+    ).order_by('-total')
+    
+    for item in stats_estado:
+        item['estado'] = dict(RegistroODT.EstadoODT.choices).get(item['estado'], item['estado'])
+        item['porcentaje'] = (item['total'] / total_registros * 100) if total_registros > 0 else 0
+
+    # Top 5 Maquinarias
+    stats_maquinaria = queryset.values('maquinaria__nombre').annotate(
+        total=Count('id')
+    ).order_by('-total')[:5]
+
+    # Líneas de trabajo (tipos)
+    stats_tipo = queryset.values('maquinaria__tipo__nombre').annotate(
+        total=Count('id')
+    ).order_by('-total')
+    
+    for item in stats_tipo:
+        item['porcentaje'] = (item['total'] / total_registros * 100) if total_registros > 0 else 0
+
+    # --- Generar gráficos como imágenes base64 ---
+    grafico_estado = None
+    grafico_maquinaria = None
+    grafico_tipo = None
+
+    if total_registros > 0:
+        # Gráfico de estados
+        labels_estado = [item['estado'] for item in stats_estado]
+        data_estado = [item['total'] for item in stats_estado]
+        grafico_estado = generar_grafico_base64(labels_estado, data_estado, 'Distribución por Estado')
+
+        # Gráfico de maquinarias
+        if stats_maquinaria:
+            labels_maq = [item['maquinaria__nombre'] for item in stats_maquinaria]
+            data_maq = [item['total'] for item in stats_maquinaria]
+            grafico_maquinaria = generar_grafico_base64(labels_maq, data_maq, 'Top 5 Maquinarias')
+
+        # Gráfico de tipos
+        if stats_tipo:
+            labels_tipo = [item['maquinaria__tipo__nombre'] for item in stats_tipo]
+            data_tipo = [item['total'] for item in stats_tipo]
+            grafico_tipo = generar_grafico_base64(labels_tipo, data_tipo, 'Líneas de Trabajo')
+
+    # --- Tabla de valorización mensual ---
+    # Obtener año actual o del filtro
+    año_actual = datetime.now().year
+    meses_nombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    
+    # Crear estructura para reporte mensual
+    estados_dict = dict(RegistroODT.EstadoODT.choices)
+    reporte_mensual = []
+    
+    for estado_val, estado_nombre in RegistroODT.EstadoODT.choices:
+        fila = {
+            'estado': estado_nombre,
+            'meses': [],
+            'total_fila': 0
+        }
+        
+        for mes in range(1, 13):
+            count = queryset.filter(
+                estado=estado_val,
+                fecha_programada__year=año_actual,
+                fecha_programada__month=mes
+            ).count()
+            fila['meses'].append(count)
+            fila['total_fila'] += count
+        
+        reporte_mensual.append(fila)
+
+    context = {
+        'odts': queryset,
+        'total_registros': total_registros,
+        'total_aprobadas': total_aprobadas,
+        'total_revision': total_revision,
+        'total_solicitud': total_solicitud,
+        'grafico_estado': grafico_estado,
+        'grafico_maquinaria': grafico_maquinaria,
+        'grafico_tipo': grafico_tipo,
+        'meses_cabecera': meses_nombres,
+        'reporte_mensual': reporte_mensual,
+        'año_actual': año_actual,
+    }
+
+    template = get_template('reportes/reporte_odt_pdf.html')
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="reporte_odt.pdf"'
+
+    pisa.CreatePDF(
+        html,
+        dest=response,
+        link_callback=PDFStaticResolver(request)
+    )
+    return response

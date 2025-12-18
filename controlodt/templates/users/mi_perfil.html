@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="text-neutral-900">
+  <div class="max-w-auto mx-auto px-4 py-8">
+
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl md:text-3xl font-primary">Mi perfil</h1>
+      <p class="text-neutral-500 text-sm">
+        Complete los campos y guarde los cambios.
+      </p>
+    </div>
+
+    <!-- ================= FORMULARIO PERFIL ================= -->
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+
+      <!-- Datos personales -->
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-5 grid grid-cols-1 md:grid-cols-4 gap-4">
+
+        <!-- Imagen -->
+        <div class="col-span-1 md:col-span-4">
+          <label class="block text-sm font-medium mb-2">Foto de perfil</label>
+          <div class="flex items-center gap-4">
+            <img
+              id="preview"
+              src="{% if request.user.imagen %}{{ request.user.imagen.url }}{% else %}{% static 'placeholder-avatar.png' %}{% endif %}"
+              class="h-16 w-16 rounded-full object-cover border"
+              alt="Foto de perfil"
+            />
+            <div class="flex-1">
+              {{ perfil_form.imagen.errors }}
+              {{ perfil_form.imagen }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Campos del perfil -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Nombre</label>
+          {{ perfil_form.nombre }}
+          {% for e in perfil_form.nombre.errors %}
+            <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Apellido paterno</label>
+          {{ perfil_form.apellido }}
+          {% for e in perfil_form.apellido.errors %}
+            <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Apellido materno</label>
+          {{ perfil_form.apellidoM }}
+          {% for e in perfil_form.apellidoM.errors %}
+            <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Correo electrónico</label>
+          {{ perfil_form.email }}
+          {% for e in perfil_form.email.errors %}
+            <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Carnet de identidad</label>
+          {{ perfil_form.dni }}
+          {% for e in perfil_form.dni.errors %}
+            <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Teléfono</label>
+          {{ perfil_form.telefono }}
+          {% for e in perfil_form.telefono.errors %}
+            <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium mb-1">Dirección</label>
+          {{ perfil_form.direccion }}
+          {% for e in perfil_form.direccion.errors %}
+            <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+
+        <!-- Botón guardar perfil -->
+        <div class="md:col-span-4 flex justify-end mt-4">
+          <button
+            type="submit"
+            name="guardar_perfil"
+            class="h-11 px-6 rounded-xl bg-neutral-900 text-white font-semibold hover:opacity-90">
+            Guardar cambios
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+    <!-- ================= FORMULARIO CONTRASEÑA ================= -->
+    <form method="post" class="space-y-6 mt-6">
+      {% csrf_token %}
+
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="md:col-span-3">
+          <h2 class="text-lg font-semibold mb-2">Cambiar contraseña</h2>
+          <p class="text-sm text-neutral-500 mb-4">
+            Complete solo si desea modificar su contraseña.
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Contraseña actual</label>
+          {{ password_form.old_password }}
+          {% for e in password_form.old_password.errors %}
+            <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Nueva contraseña</label>
+          {{ password_form.new_password1 }}
+          {% for e in password_form.new_password1.errors %}
+            <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Confirmar nueva contraseña</label>
+          {{ password_form.new_password2 }}
+          {% for e in password_form.new_password2.errors %}
+            <p class="text-sm text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+
+        <!-- Botón cambiar contraseña -->
+        <div class="md:col-span-3 flex justify-end mt-4">
+          <button
+            type="submit"
+            name="cambiar_password"
+            class="h-11 px-6 rounded-xl bg-slate-900 text-white font-semibold hover:opacity-90">
+            Cambiar contraseña
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Preview imagen
+    const input = document.getElementById("id_imagen");
+    const preview = document.getElementById("preview");
+
+    input?.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      preview.src = URL.createObjectURL(file);
+    });
+  </script>
+</section>
+{% endblock %}

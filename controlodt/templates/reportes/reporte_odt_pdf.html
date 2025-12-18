@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte ODT</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            color: #1f2937;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #f59e0b;
+            padding-bottom: 10px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 18pt;
+            color: #111827;
+        }
+        
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 9pt;
+            color: #6b7280;
+        }
+        
+        .stats-container {
+            width: 100%;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .stat-box {
+            float: left;
+            width: 24%;
+            margin-right: 1.33%;
+            padding: 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+        
+        .stat-box:last-child {
+            margin-right: 0;
+        }
+        
+        .stat-box.blue {
+            background-color: #dbeafe;
+        }
+        
+        .stat-box.green {
+            background-color: #d1fae5;
+        }
+        
+        .stat-box.yellow {
+            background-color: #fef3c7;
+        }
+        
+        .stat-box.purple {
+            background-color: #e9d5ff;
+        }
+        
+        .stat-label {
+            display: block;
+            font-size: 8pt;
+            color: #4b5563;
+            margin-bottom: 3px;
+        }
+        
+        .stat-value {
+            display: block;
+            font-size: 14pt;
+            font-weight: bold;
+            color: #111827;
+        }
+        
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        
+        .section-title {
+            
+            color:#0f172a;
+            padding: 6px 12px;
+            font-size: 14pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            clear: both;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 8pt;
+        }
+        
+        thead {
+            background-color: #0f172a;
+            color: white;
+        }
+        
+        th {
+            padding: 8px 6px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 8pt;
+        }
+        
+        td {
+            padding: 6px 6px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        
+        .no-records {
+            text-align: center;
+            padding: 30px;
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .font-medium {
+            font-weight: 600;
+        }
+        
+        .whitespace-nowrap {
+            white-space: nowrap;
+        }
+        
+        /* Estilos para gráficos */
+        .charts-container {
+            width: 100%;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .chart-box {
+            float: left;
+            width: 32%;
+            margin-right: 2%;
+            text-align: center;
+            padding: 5px;
+            vertical-align: top;
+        }
+        
+        .chart-box:last-child {
+            margin-right: 0;
+        }
+        
+        .chart-box img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .chart-title {
+            font-size: 8pt;
+            font-weight: bold;
+            color: #6b7280;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        /* Estilos para tabla valorización */
+        .valorizacion-table {
+            margin-top: 15px;
+        }
+        
+        .valorizacion-table th.total-col {
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+        
+        .valorizacion-table td.total-cell {
+            font-weight: bold;
+            background-color: #f9fafb;
+        }
+        
+        .valorizacion-table td.center {
+            text-align: center;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 8pt;
+            color: #6b7280;
+            padding: 10px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Encabezado -->
+    <div class="">
+        <div class="meta-info">EMBOTELLADORA NUDELPA LIMITADA</div>
+        <div class="meta-info">Trinidad - Beni - Bolivia</div>
+        <div class="meta-info">Reporte General de Orden de Trabajo</div>
+    </div>
+    <div class="meta-info" style="text-align: right;":>
+        <strong>Santísima Trinidad,</strong> {% now "j" %} de {% now "F" %} de {% now "Y" %} - <strong> Nudelpa
+    </div>
+    
+    <!-- Estadísticas Resumidas -->
+    <table class="stats-container clearfix" style="width:100%;">
+        <thead>
+            <tr>
+                <th class="stat-box blue" style="width:25%;">
+                    <span class="stat-label" >Total ODT</span>
+                    <span class="stat-value">{{ total_registros }}</span>
+                </th>
+                <th class="stat-box green" style="width:25%;">
+                    <span class="stat-label">Total Aprobadas</span>
+                    <span class="stat-value">{{ total_aprobadas }}</span>
+                </th>
+                <th class="stat-box yellow" style="width:25%;">
+                    <span class="stat-label">Total en Revisión</span>
+                    <span class="stat-value">{{ total_revision }}</span>
+                </th>
+                <th class="stat-box purple" style="width:25%;">
+                    <span class="stat-label">Total en Solicitud</span>
+                    <span class="stat-value">{{ total_solicitud }}</span>
+                </th>
+                
+            </tr>
+        </thead>
+      
+    </table>
+    {% if grafico_estado or grafico_maquinaria or grafico_tipo %}
+    <div class="section-title">Análisis Gráfico</div>
+    <table class="stats-container clearfix" style="width:100%;">
+        <thead>
+            <tr>
+                <th class=""style="width:35%;">
+                    {% if grafico_estado %}
+                    <div class="chart-box">
+                        <div class="chart-title">Distribución por Estado</div>
+                        <img src="{{ grafico_estado }}" alt="Gráfico de Estados">
+                    </div>
+                    {% endif %}
+                </th>
+                <th class=""style="width:35%;">
+                    {% if grafico_maquinaria %}
+                    <div class="chart-box">
+                        <div class="chart-title">Top 5 Maquinarias</div>
+                        <img src="{{ grafico_maquinaria }}" alt="Gráfico de Maquinarias">
+                    </div>
+                    {% endif %}
+                </th>
+                <th class=""style="width:35%;">
+                    {% if grafico_tipo %}
+                    <div class="chart-box">
+                        <div class="chart-title">Líneas de Trabajo</div>
+                        <img src="{{ grafico_tipo }}" alt="Gráfico de Tipos">
+                    </div>
+                    {% endif %}
+                </th>
+               
+                
+            </tr>
+        </thead>
+      
+    </table>
+    <br><br><br>
+    
+    
+    {% endif %}
+    
+    <!-- Tabla de Órdenes de Trabajo -->
+    <div class="section-title">Órdenes de Trabajo Filtradas</div>
+    
+    <table>
+        <thead>
+            <tr style="background: #0f172a;">
+                <th>Fecha</th>
+                <th class="whitespace-nowrap">N° ODT</th>
+                <th>Línea</th>
+                <th>Equipo</th>
+                <th>Estado</th>
+                <th>Solicitante</th>
+                <th>Enc. Revisión</th>
+                <th>Enc. Aprobación</th>
+                <th>Referencia</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for odt in odts %}
+            <tr>
+                <td>
+                    {% if odt.fecha_programada %}
+                        {{ odt.fecha_programada|date:"d/m/Y" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td class="whitespace-nowrap font-medium">
+                    {{ odt.n_odt|stringformat:"03d" }}
+                </td>
+                <td>{{ odt.maquinaria.tipo }}</td>
+                <td>{{ odt.maquinaria.nombre }}</td>
+                <td>{{ odt.get_estado_display }}</td>
+                <td class="whitespace-nowrap">
+                    {{ odt.creado_por.get_full_name }}
+                </td>
+                <td class="whitespace-nowrap">
+                    {% if odt.revisado_por %}
+                        {{ odt.revisado_por.get_full_name }}
+                    {% else %}
+                        Pendiente
+                    {% endif %}
+                </td>
+                <td class="whitespace-nowrap">
+                    {% if odt.aprobado_por %}
+                        {{ odt.aprobado_por.get_full_name }}
+                    {% else %}
+                        Pendiente
+                    {% endif %}
+                </td>
+                <td>{{ odt.titulo }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" class="no-records">
+                    No se encontraron registros con los filtros aplicados
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Nueva página para la tabla de valorización -->
+    
+    <!-- Tabla de Valorización Mensual -->
+    <div class="valorizacion-table">
+        <div class="section-title">Valorización Anual: Distribución de Cargas por Mes ({{ año_actual }})</div>
+        
+        <table>
+            <thead >
+                <tr style="background: #0f172a;">
+                    <th>Estado</th>
+                    {% for mes in meses_cabecera %}
+                        <th class="center">{{ mes }}</th>
+                    {% endfor %}
+                    <th class="total-col center">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fila in reporte_mensual %}
+                <tr>
+                    <td class="font-medium">{{ fila.estado }}</td>
+                    {% for cant in fila.meses %}
+                        <td class="center">
+                            {% if cant > 0 %}{{ cant }}{% else %}-{% endif %}
+                        </td>
+                    {% endfor %}
+                    <td class="total-cell center">{{ fila.total_fila }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pie de página -->
+    <div class="footer">
+        <p>Reporte generado el {% now "d/m/Y H:i" %} | Panel Analítico de ODT</p>
+    </div>
+</body>
+</html>

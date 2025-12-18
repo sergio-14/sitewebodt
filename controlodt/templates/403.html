@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+{% load static %} 
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 - Acceso denegado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .container {
+            background: #fafafa;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px 30px;
+            text-align: center;
+            animation: slideUp 0.6s ease-out;
+            border: 2px solid #22c55e;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .icon-container {
+            margin-bottom: 30px;
+        }
+
+        .lock-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            position: relative;
+            animation: shake 0.5s ease-in-out;
+            background: red;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .lock-icon svg {
+            width: 60px;
+            height: 60px;
+            fill: #fafafa;
+        }
+
+        h1 {
+            color: #0f172a;
+            font-size: 30px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .error-code {
+            color: red;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        p {
+            color: #64748b;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: red;
+            color: #fafafa;
+            text-decoration: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+
+        .btn:hover {
+            background: red;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .illustration {
+            margin-bottom: 30px;
+        }
+
+        .illustration img {
+            max-width: 200px;
+            width: 100%;
+            height: auto;
+            opacity: 0.9;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 30px;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .lock-icon {
+                width: 100px;
+                height: 100px;
+            }
+
+            .lock-icon svg {
+                width: 50px;
+                height: 50px;
+            }
+
+            p {
+                font-size: 1rem;
+            }
+
+            .illustration img {
+                max-width: 150px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .error-code {
+                font-size: 1rem;
+            }
+
+            .lock-icon {
+                width: 80px;
+                height: 80px;
+            }
+
+            .lock-icon svg {
+                width: 40px;
+                height: 40px;
+            }
+
+            p {
+                font-size: 0.95rem;
+            }
+
+            .btn {
+                padding: 12px 30px;
+                font-size: 0.95rem;
+            }
+
+            .illustration img {
+                max-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="illustration">
+            <img src="{% static 'src/img/logo.png' %}" alt="Acceso denegado">
+        </div>
+        
+        <div class="icon-container">
+            <div class="lock-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 1C8.676 1 6 3.676 6 7v3H4c-1.104 0-2 .896-2 2v9c0 1.104.896 2 2 2h16c1.104 0 2-.896 2-2v-9c0-1.104-.896-2-2-2h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v3H8V7c0-2.276 1.724-4 4-4zm0 10c1.104 0 2 .896 2 2s-.896 2-2 2-2-.896-2-2 .896-2 2-2z"/>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="error-code">ERROR 403</div>
+        <h1>Acceso Denegado</h1>
+        <p>Lo sentimos, no tienes los permisos necesarios para acceder a esta sección. Si crees que esto es un error, contacta al administrador.</p>
+        
+        <a href="{% url 'home' %}" class="btn">Volver al Inicio</a>
+    </div>
+</body>
+</html>

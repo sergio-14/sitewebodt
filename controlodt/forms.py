@@ -281,19 +281,52 @@ class UserUpdateForm(BaseUserForm):
             
         return user
 
-from django.conf import settings
-from django.apps import apps as django_apps
-from django.db.models import Q
-from collections import OrderedDict
+from django.contrib.auth.forms import PasswordChangeForm
+class MiPerfilForm(TailwindFormMixin, forms.ModelForm):
+    email = forms.EmailField(label='Correo electrónico')
 
-EXCLUDED_APPS = {"admin", "auth", "contenttypes", "sessions"}
+    class Meta:
+        model = User
+        fields = [
+            'email',
+            'nombre',
+            'apellido',
+            'apellidoM',
+            'dni',
+            'telefono',
+            'direccion',
+            'imagen',
+        ]
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].lower().strip()
+        qs = User.objects.filter(email=email).exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("Este correo ya está en uso.")
+        return email
+
+
+class CambiarPasswordForm(TailwindFormMixin, PasswordChangeForm):
+    pass
+
+
+
+from django.contrib.auth.models import Group, Permission
+from django.db.models import Q
+from django import forms
+from django.conf import settings
+from collections import OrderedDict
+from django.utils.translation import gettext_lazy as _
+
+EXCLUDED_APPS = {"admin", "contenttypes", "sessions"}
 
 ACTION_LABEL = {
     'add': _('Agregar'),
     'change': _('Modificar'),
     'delete': _('Eliminar'),
     'view': _('Ver'),
-  
+    # agrega mapeos para permisos personalizados si los tienes
+    # 'usuarios': _('Permiso para usuarios'),
 }
 
 class GroupForm(TailwindFormMixin, forms.ModelForm):
@@ -316,35 +349,46 @@ class GroupForm(TailwindFormMixin, forms.ModelForm):
         """
         Define el queryset base de permisos permitidos.
         Si settings.GROUP_PERMISSION_APPS existe, usa esas apps; si no, usa todas excepto EXCLUDED_APPS.
+        SIEMPRE incluye permisos del modelo Group (auth.group) para gestionar grupos.
         Siempre incluimos permisos ya asignados al grupo para evitar que se pierdan en edición.
         """
         allowed_apps = getattr(settings, "GROUP_PERMISSION_APPS", None)
+        
+        # Filtro base según configuración
         if allowed_apps:
             base_filter = Q(content_type__app_label__in=allowed_apps)
         else:
             base_filter = ~Q(content_type__app_label__in=EXCLUDED_APPS)
+        
+        # IMPORTANTE: Siempre incluir permisos del modelo Group (auth.group)
+        group_perms_filter = Q(content_type__app_label='auth', content_type__model='group')
+        
+        # Combinar filtros: (base_filter OR group_perms)
+        combined_filter = base_filter | group_perms_filter
 
+        # Incluir permisos ya asignados al grupo (para edición)
         existing_ids = []
         if getattr(self, "instance", None) and getattr(self.instance, "pk", None):
             existing_ids = list(self.instance.permissions.values_list("pk", flat=True))
 
         return (Permission.objects.select_related("content_type")
-                .filter(base_filter | Q(pk__in=existing_ids))
+                .filter(combined_filter | Q(pk__in=existing_ids))
                 .order_by("content_type__app_label", "content_type__model", "codename"))
 
     def _ensure_allowed_qs(self):
         if not hasattr(self, "allowed_qs"):
             self.allowed_qs = self._build_allowed_qs()
 
+    # ---------- init ----------
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._ensure_allowed_qs()
 
-      
+        # --- Construir estructura agrupada por modelo (para template) ---
         grouped = OrderedDict()
         for perm in self.allowed_qs:
             ct = perm.content_type
-  
+            # intentar obtener verbose_name del modelo
             try:
                 model_cls = ct.model_class()
                 if model_cls:
@@ -357,7 +401,8 @@ class GroupForm(TailwindFormMixin, forms.ModelForm):
                 model_verbose = ct.model.capitalize()
                 model_verbose_plural = (ct.model + 's').capitalize()
 
-            codename = perm.codename  
+            # deducir acción desde el codename (add_xxx, change_xxx, etc.)
+            codename = perm.codename  # ej "add_activo" o "usuarios" (perm custom)
             if '_' in codename:
                 action_key = codename.split('_', 1)[0]
             else:
@@ -365,10 +410,11 @@ class GroupForm(TailwindFormMixin, forms.ModelForm):
 
             action_label = ACTION_LABEL.get(action_key, action_key.capitalize())
 
+            # etiqueta: "Agregar Activo" o para permisos personalizados simplemente mostrar perm.name
             if '_' in perm.codename:
                 label = f"{action_label} {model_verbose}"
             else:
-              
+                # permiso personalizado (p.ej. "usuarios") -> usa perm.name
                 label = perm.name
 
             key = (ct.app_label, ct.model, model_verbose_plural)
@@ -381,14 +427,16 @@ class GroupForm(TailwindFormMixin, forms.ModelForm):
             })
 
         self.allowed_grouped = grouped
-       
+        # --- FIN grouped ---
+
+        # Preselección en edición (tu lógica existente)
         if self.instance and self.instance.pk and not self.is_bound:
             allowed_ids = set(self.allowed_qs.values_list("pk", flat=True))
             current_ids = list(self.instance.permissions.values_list("pk", flat=True))
             initial_ids = [str(pk) for pk in current_ids if pk in allowed_ids]
             self.initial.setdefault("permissions", initial_ids)
 
- 
+    # ---------- propiedad para el template ----------
     @property
     def selected_ids(self):
         """
@@ -408,7 +456,7 @@ class GroupForm(TailwindFormMixin, forms.ModelForm):
 
         return []
 
-   
+    # ---------- clean ----------
     def clean_permissions(self):
         self._ensure_allowed_qs()
         raw_vals = self.data.getlist(self.add_prefix("permissions")) if self.is_bound else []
@@ -472,21 +520,27 @@ class MaquinariaForm(TailwindFormMixin, forms.ModelForm):
 
 
 from .models import RegistroODT
-
 class RegistroODTForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
         model = RegistroODT
         fields = [
-            'maquinaria', 'titulo', 'descripcion', 'prioridad',
-            'fecha_programada', 'horas_estimadas', 'archivo_informe', 'observaciones'
+            'maquinaria',
+            'titulo',
+            'descripcion',
+            'parte_equipo',        # ✅ FALTABA
+            'prioridad',
+            'fecha_programada',
+            'archivo_informe',
         ]
         widgets = {
-            'descripcion': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Descripción del trabajo'}),
-            'observaciones': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Observaciones (internas)'}),
-            'fecha_programada': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'descripcion': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Descripción del trabajo'
+            }),
+            'parte_equipo': forms.TextInput(attrs={
+                'placeholder': 'Ej: Motor, sistema eléctrico, transmisión'
+            }),
+            'fecha_programada': forms.DateTimeInput(attrs={
+                'type': 'datetime-local'
+            }),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    

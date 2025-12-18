@@ -6,6 +6,15 @@ from controlodt import views
 
 from django.shortcuts import render
 
+from django.conf.urls import handler403
+from django.shortcuts import render
+
+
+def error_403_view(request, exception):
+    return render(request, '403.html', status=403)
+
+handler403 = error_403_view
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
@@ -19,7 +28,9 @@ urlpatterns = [
     path("usuarios/", views.listar_user, name="listar_user"),
     path("usuarios/crear/",views.user_create, name="user_create"),
     path("usuarios/<int:pk>/editar/", views.user_edit, name="user_edit"),
-    path("usuarios/<int:pk>/toggle/", views.toggle_active_user, name="user_toggle_active"), 
+    path("usuarios/<int:pk>/toggle/", views.toggle_active_user, name="user_toggle_active"),
+    path('mi-perfil/', views.mi_perfil, name='mi_perfil'),
+     
     
     #grupos
     path("grupos/", views.group_list, name="group_list"),
@@ -35,6 +46,7 @@ urlpatterns = [
     path('maquinarias/', views.maquinaria_list, name='maquinaria_list'),
     path('maquinarias/nuevo/', views.maquinaria_create, name='maquinaria_create'),
     path('maquinarias/<int:pk>/editar/', views.maquinaria_edit, name='maquinaria_edit'),
+    path('maquinaria/<int:pk>/cambiar-estado/', views.cambiar_estado_maquinaria, name='cambiar_estado_maquinaria'),
 
     # ODT
     path('odts/', views.odt_list, name='odt_list'),
@@ -58,7 +70,9 @@ urlpatterns = [
     path('odt/aprobar/<int:pk>/denegar/', views.odt_denegar_aprobacion, name='odt_denegar_aprobacion'),
 
     path('detalle/<int:pk>/pdf/', views.odt_detalle_pdf, name='odt_detalle_pdf'),
-    
+
+    path('reportes/odt/', views.reporte_odt_view, name='reporte_odt'),
+    path('reportes/odt/pdf/', views.reporte_odt_pdf, name='reporte_odt_pdf'),
     
 ]
 if settings.DEBUG:

@@ -1,227 +1,186 @@
-<!DOCTYPE html>
-<html>
+{% load static %}
+<!doctype html>
+<html lang="es">
 <head>
-    <meta charset="utf-8">
-    <title>Detalle de Orden de Trabajo #{{ odt.pk }}</title>
-    <style>
-        /* Estilos CSS Base */
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 10pt;
-            margin: 0;
-            padding: 0;
-        }
-        h1, h2, h3 {
-            font-family: 'Helvetica', sans-serif;
-            color: #34495e;
-            margin-top: 5px;
-            margin-bottom: 5px;
-        }
-        h1 {
-            font-size: 18pt;
-            border-bottom: 2px solid #34495e;
-            padding-bottom: 5px;
-            text-align: center;
-        }
-        h3 {
-            font-size: 11pt;
-            color: #1f2937;
-            margin-top: 15px;
-            border-bottom: 1px dashed #e5e7eb;
-            padding-bottom: 5px;
-        }
-        
-        /* Estilos de Tabla General */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-        }
-        td {
-            padding: 8px 10px;
-            text-align: left;
-            border: 1px solid #e5e7eb;
-        }
-        .data-table td {
-            font-size: 10pt;
-        }
+  <meta charset="utf-8" />
+  <title>Orden de Trabajo</title>
 
-        /* Estilos para Etiquetas y Datos */
-        .label {
-            font-weight: bold;
-            color: #555;
-            width: 25%;
-            background-color: #f9fafb;
-        }
-        .status {
-            font-weight: bold;
-            padding: 3px 6px;
-            border-radius: 4px;
-            display: inline-block;
-            font-size: 9pt;
-        }
-        .status.APROBADA { background-color: #d1fae5; color: #065f46; }
-        .status.REVISION { background-color: #dbeafe; color: #1e40af; }
-        .status.EN_EJECUCION { background-color: #fffbeb; color: #b45309; }
-        .status.RECHAZADA, .status.RECHAZADAA { background-color: #fee2e2; color: #991b1b; }
-        .status.OPERATIVA { background-color: #d1fae5; color: #065f46; }
 
-        /* TABLA DE FIRMAS - 3 COLUMNAS EN UNA FILA */
-        .firma-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            table-layout: fixed;
-        }
-        
-        .firma-table td {
-            width: 33.33%;
-            padding: 10px;
-            vertical-align: top;
-            border: 1px solid #ccc;
-            text-align: center;
-            height: 220px;
-        }
-        
-        .firma-table h4 {
-            font-size: 10pt;
-            margin: 0 0 10px 0;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #ddd;
-            color: #1f2937;
-        }
-        
-        .firma-name {
-            font-size: 11pt;
-            font-weight: bold;
-            color: #1f2937;
-            margin: 8px 0;
-        }
-        
-        .firma-role {
-            font-size: 9pt;
-            color: #6b7280;
-            margin: 5px 0;
-        }
-        
-        .firma-img {
-            width: 70px;
-            height: 40px;
-            margin-top: 10px;
-            border-bottom: 1px dashed #bbb;
-            padding-bottom: 5px;
-            object-fit: contain;
-        }
-        
-        .firma-label {
-            font-size: 8pt;
-            color: #777;
-            margin-top: 15px;
-            margin-bottom: 5px;
-        }
-        
-        .no-firma {
-            font-size: 9pt;
-            color: #999;
-            margin-top: 50px;
-        }
-        
-        /* Configuración de Página para Pie de Página */
-        .running-footer {
-            position: running(footer_content); 
-            font-size: 8pt;
-            text-align: center;
-            color: #777;
-        }
-        
-        @page {
-            size: A4;
-            margin: 1cm;
-            @frame footer_frame {
-                -pdf-frame-content: footer_content; 
-                bottom: 0.5cm;
-                margin-left: 1cm;
-                margin-right: 1cm;
-                height: 1cm;
-            }
-        }
-    </style>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 10pt; color: #1f2937; line-height: 1.4; }
+    .container { padding: 16px 20px; max-width: 800px; margin: 0 auto; }
+
+    .header-table { width: 100%; border: none; margin-bottom: 6px; }
+    .logo-img { width: 90pt; height: auto; }
+    .company-title { font-size: 16pt; font-weight: bold; color: #3d4f2a; }
+    .company-subtitle { font-size: 9pt; color: #374151; margin-top: 2pt; }
+    .doc-title { font-size: 11pt; font-weight: bold; color: #111827; margin-top: 4pt; }
+    .divider-double { height: 4pt; margin-top: 6pt; }
+    .divider-double div { border-bottom: 1pt solid #111827; margin-bottom: 1pt; }
+
+    .meta-info { font-size: 9pt; color: #374151; text-align: right; padding: 8pt 0; }
+
+    .section { margin: 12px 0; }
+    .section-header { background-color: #3d4f2a; color: white; padding:8px 12px; border-radius:4px; }
+
+    .info-card { background:#f9fafb; border:1px solid #e5e7eb; padding:2px 1px; margin-bottom:2px; }
+    .data-grid td { padding:1px 0; vertical-align: top; border:none; font-size:10pt; }
+    .data-label { color:#6b7280; }
+    .data-value { color:#111827; font-weight:600; margin-left:6px; }
+
+    .styled-table { width:100%; border-collapse:collapse; font-size:9pt; margin:10px 0; }
+    .styled-table th { background:#1CB841; color:white; padding:6px 6px; text-align:left; font-weight:bold; }
+    .styled-table td { padding:3px 6px; border:1px solid #e5e7eb; }
+
+    .badge { display:inline-block; padding:4px 10px; border-radius:12px; font-size:8pt; color:white; font-weight:bold; text-transform:uppercase; }
+    .badge-green { background:#16a34a; } .badge-red { background:#dc2626; } .badge-amber { background:#d97706; } .badge-gray { background:#6b7280; }
+
+    .financial-summary {  padding:2px; margin:10px 0; }
+    .financial-row { display:table; width:100%; margin:4px 0; }
+    .financial-row  div { display:table-cell; padding:4px 8px; }
+    .financial-label { width:60%; font-weight:bold; color:#374151; }
+    .financial-value { width:40%; text-align:right; font-weight:bold; color:#111827; font-size:11pt; }
+
+    /* utilidades de salto de página */
+    .record-block { page-break-inside: avoid; }
+    .page-break-before { page-break-before: always; }
+  </style>
 </head>
 <body>
-    
-    <div class="running-footer">
-        Documento ID: #{{ odt.pk }} | Página <pdf:pagenumber> de <pdf:pagecount>
-    </div>
+  <div class="container">
 
-    <h1>ORDEN DE TRABAJO (ODT) - Detalle Completo</h1>
-    <div style="text-align: center; margin-bottom: 15px;">
-        <p style="font-size: 10pt; color: #6c757d;">Generado el: {{ "now"|date:"d/m/Y H:i" }} | Creado: {{ odt.creado_en|date:"d/m/Y H:i" }}</p>
-        <div style="margin-top: 10px;">
-            <span class="status {{ odt.estado }}"> Estado: {{ odt.get_estado_display }}</span>
-            <span class="status {{ odt.prioridad }}" style="margin-left: 10px;"> Prioridad: {{ odt.get_prioridad_display }}</span>
-        </div>
-    </div>
-    
-    <h3>Datos de la Maquinaria</h3>
-    <table class="data-table">
-        <tr>
-            <td class="label">Máquina</td>
-            <td>{{ odt.maquinaria.nombre }}</td>
-            <td class="label">Código</td>
-            <td>{{ odt.maquinaria.codigo }}</td>
-        </tr>
-        <tr>
-            <td class="label">Tipo</td>
-            <td>{{ odt.maquinaria.tipo.nombre }}</td>
-            <td class="label">Estado Máquina</td>
-            <td>
-                <span class="status {{ odt.maquinaria.estado }}">
-                    {{ odt.maquinaria.get_estado_display }}
-                </span>
+        <!-- HEADER para este registro (se repite por cada venta porque está dentro del loop) -->
+        <table class="header-table">
+          <tr>
+            <td style="width:100pt; vertical-align: middle;">
+              <img src="{% static 'src/img/logo.png' %}" alt="Logo" class="logo-img" />
+              
             </td>
-        </tr>
-    </table>
-    
-    <table class="data-table">
-        <tr>
-            <td class="label" style="width: 25%;">Horas Estimadas</td>
-            <td style="width: 25%;">{% if odt.horas_estimadas %}{{ odt.horas_estimadas }} h{% else %}N/A{% endif %}</td>
-            <td class="label" style="width: 25%;">Horas Reales</td>
-            <td style="width: 25%;">{% if odt.horas_reales %}{{ odt.horas_reales }} h{% else %}N/A{% endif %}</td>
-        </tr>
-    </table>
-    
-    <h3>Descripción del Trabajo (Motivo: {{ odt.titulo }})</h3>
-    <div style="border: 1px solid #ddd; padding: 10px; min-height: 50px; margin-bottom: 15px;">
-        <p style="white-space: pre-wrap; margin: 0;">{{ odt.descripcion|linebreaksbr }}</p>
-    </div>
+            <td style="vertical-align: middle; text-align: center;">
+              <div class="company-title">EMBOTELLADORA NUDELPA LIMITADA</div>
+              <div class="company-subtitle">Trinidad - Beni - Bolivia</div>
+              <div class="doc-title">Orden de Trabajo</div>
+              <div class="divider-double"><div></div><div></div></div>
+            </td>
+            <td style="width:50pt; vertical-align: middle;">
+              <img src="{% static 'src/img/logoc.jpg' %}" alt="Logo" class="logo-img" />
+              
+            </td>
+            
+          </tr>
+        </table>
 
-    <h3>Observaciones Adicionales</h3>
-    <div style="border: 1px solid #ddd; padding: 10px; min-height: 50px; margin-bottom: 15px;">
-        <p style="white-space: pre-wrap; margin: 0;">
-            {% if odt.observaciones %}{{ odt.observaciones|linebreaksbr }}{% else %}Sin observaciones registradas.{% endif %}
-        </p>
-    </div>
+        <div class="meta-info">
+          <strong>Santísima Trinidad,</strong> {% now "j" %} de {% now "F" %} de {% now "Y" %} - <strong>Nudelpa/{{ odt.correlativo|stringformat:"03d" }}
+        </div>
+       
+        <br/>
 
+        <!-- INFORMACIÓN PERSONAL (inyectada en cada registro para que aparezca con cada encabezado) -->
+        <div class="section record-block">
+          <td style="width:55%; vertical-align:middle;">
+            <div style="font-weight:bold; font-size:12pt;">Información</div>
+          </td>
+          <div class="info-card">
+            <table class="data-grid " style="border: none; margin-bottom: 12px;">
+              <tr>
+                <td>
+                  <span class="data-label">Fecha Emitida:</span>
+                  <span class="data-value">{{ odt.fecha_programada|date:"d/m/Y H:i"|default:"—" }}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="data-value">Numero ODT: {{ odt.n_odt|stringformat:"03d" }}</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="data-label">Prioridad:</span>
+                  <span class="data-value"> {{ odt.get_prioridad_display }}</span>
+                </td>
+                <td style="text-align: right;">
+                  <span class="data-label">Estado:</span>
+                  <span class="data-value">{{ odt.get_estado_display }}</span>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <span class="data-label">Referencia o Razon:</span>
+                  <span class="data-value">{{ odt.titulo }}</span>
+                </td>
+              </tr>
+              
+            </table>
+           
+          </div>
+        </div>
+        <div class="section record-block">
+          <td style="width:55%; vertical-align:middle;">
+            <div style="font-weight:bold; font-size:12pt;">Datos del Equipo</div>
+          </td>
+          <div class="info-card">
+            <table class="data-grid " style="border: none; ">
+              <tr>
+                <td>
+                  <span class="data-label">Línea:</span>
+                  <span class="data-value">{{ odt.maquinaria.tipo.nombre }}</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="data-label">Equipo:</span>
+                  <span class="data-value">{{ odt.maquinaria.nombre }}</span>
+                </td>
+                <td colspan="2" style="text-align: right;">
+                  <span class="data-label">Codigo:</span>
+                  <span class="data-value">{{ odt.maquinaria.codigo }}</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="data-label">Parte de Equipo:</span>
+                  <span class="data-value">{{ odt.parte_equipo }}</span>
+                </td>
+                <td colspan="2" style="text-align: right;">
+                  <span class="data-label">Estado:</span>
+                  <span class="data-value">{{ odt.maquinaria.get_estado_display }}</span>
+                </td>
+              </tr>
+              
+              
+              
+            </table>
+            <table class=" " style="border: none; ">
+              
+              <tr>
+                <td>
+                  <span class="data-label">Referencia o Razon:</span>
+                  <span class="data-value">{{ odt.titulo }}</span>
+                </td>
+               
+              </tr>
+              
+              
+            </table>
+            <p style="font-size: 10pt; background: white; border: none;">Descrión del Fallo: {{ odt.descripcion }}</p>
+        
+          </div>
+        </div>
+       
     <h2 style="margin-top: 25px; margin-bottom: 10px;">Personal Involucrado y Firmas</h2>
     
-    <!-- TABLA CON 3 COLUMNAS EN UNA SOLA FILA -->
-    <table class="firma-table">
+    <br>
+    <table class="firma-table" style="text-align: center;">
         <tr>
             <!-- COLUMNA 1: REALIZADO POR -->
             <td>
-                <h4>Realizado por</h4>
+                
                 {% if odt.creado_por %}
-                    <p class="firma-name">{{ odt.creado_por.get_full_name }}</p>
-                    <p class="firma-role">
-                        {% for g in odt.creado_por.groups.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                    </p>
-                    <p class="firma-label">Firma Digital:</p>
                     {% if odt.creado_por.firma %}
-                        <img class="firma-img" src="{{ odt.creado_por.firma.url }}" alt="Firma">
+                        <img class="firma-img" src="{{ odt.creado_por.firma.url }}" style="width: auto; height: 50pt;" alt="Firma">
                     {% else %}
                         <p class="no-firma">Firma no registrada</p>
                     {% endif %}
+                    <h4 style="font-size: 8pt;">Realizado por {% for g in odt.creado_por.groups.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</h4>
+                    <p style="font-size: 9pt;" class="firma-name">{{ odt.creado_por.get_full_name }}</p>
+                   
                 {% else %}
                     <p class="no-firma">No asignado</p>
                 {% endif %}
@@ -229,18 +188,17 @@
             
             <!-- COLUMNA 2: REVISADO POR -->
             <td>
-                <h4>Revisado por (Supervisor)</h4>
+                
                 {% if odt.revisado_por %}
-                    <p class="firma-name">{{ odt.revisado_por.get_full_name }}</p>
-                    <p class="firma-role">
-                        {% for g in odt.revisado_por.groups.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                    </p>
-                    <p class="firma-label">Firma Digital:</p>
                     {% if odt.revisado_por.firma %}
-                        <img class="firma-img" src="{{ odt.revisado_por.firma.url }}" alt="Firma">
+                        <img class="firma-img" src="{{ odt.revisado_por.firma.url }}" style="width: auto; height: 50pt;" alt="Firma">
                     {% else %}
                         <p class="no-firma">Firma no registrada</p>
                     {% endif %}
+                    <h4 style="font-size: 8pt;">Revisado por {% for g in odt.revisado_por.groups.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</h4>
+                    <p style="font-size: 9pt;" class="firma-name">{{ odt.revisado_por.get_full_name }}</p>
+                    
+                    
                 {% else %}
                     <p class="no-firma">Pendiente de revisión</p>
                 {% endif %}
@@ -248,18 +206,16 @@
             
             <!-- COLUMNA 3: APROBADO POR -->
             <td>
-                <h4>Aprobado por (Jefe de Área)</h4>
+                
                 {% if odt.aprobado_por %}
-                    <p class="firma-name">{{ odt.aprobado_por.get_full_name }}</p>
-                    <p class="firma-role">
-                        {% for g in odt.aprobado_por.groups.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                    </p>
-                    <p class="firma-label">Firma Digital:</p>
                     {% if odt.aprobado_por.firma %}
-                        <img class="firma-img" src="{{ odt.aprobado_por.firma.url }}" alt="Firma">
+                        <img class="firma-img" src="{{ odt.aprobado_por.firma.url }}" style="width: auto; height: 50pt;" alt="Firma">
                     {% else %}
                         <p class="no-firma">Firma no registrada</p>
                     {% endif %}
+                    <h4 style="font-size: 8pt;">Aprobado por {% for g in odt.aprobado_por.groups.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</h4>
+                    <p style="font-size: 9pt;" class="firma-name">{{ odt.aprobado_por.get_full_name }}</p>
+                   
                 {% else %}
                     <p class="no-firma">Pendiente de aprobación</p>
                 {% endif %}

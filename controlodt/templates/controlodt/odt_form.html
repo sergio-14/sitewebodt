@@ -18,6 +18,11 @@
           {{ form.titulo }}
           {% for e in form.titulo.errors %}<p class="text-sm text-red-600">{{ e }}</p>{% endfor %}
         </div>
+        <div class="md:col-span-3">
+          <label class="{{ form.label_class }}">Parte de Equipo</label>
+          {{ form.parte_equipo }}
+          {% for e in form.observaciones.errors %}<p class="text-sm text-red-600">{{ e }}</p>{% endfor %}
+        </div>
 
         <div >
           <label class="{{ form.label_class }}">Prioridad</label>
@@ -31,20 +36,15 @@
           {{ form.fecha_programada }}
           {% for e in form.fecha_programada.errors %}<p class="text-sm text-red-600">{{ e }}</p>{% endfor %}
         </div>
-        <div class="md:col-span-3">
+        <div class="md:col-span-5">
           <label class="{{ form.label_class }}">Archivo informe</label>
-          {{ form.archivo_informe }}
+          <div class="md:col-span-5 border border-neutral-400 rounded-lg">{{ form.archivo_informe }}</div>
           {% for e in form.archivo_informe.errors %}<p class="text-sm text-red-600">{{ e }}</p>{% endfor %}
         </div>
-        <div class="md:col-span-3">
+        <div class="md:col-span-5">
           <label class="{{ form.label_class }}">Descripción</label>
           {{ form.descripcion }}
           {% for e in form.descripcion.errors %}<p class="text-sm text-red-600">{{ e }}</p>{% endfor %}
-        </div>
-        <div class="md:col-span-2">
-          <label class="{{ form.label_class }}">Observaciones</label>
-          {{ form.observaciones }}
-          {% for e in form.observaciones.errors %}<p class="text-sm text-red-600">{{ e }}</p>{% endfor %}
         </div>
 
         

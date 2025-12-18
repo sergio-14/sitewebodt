@@ -2,13 +2,14 @@
 {% block content %}
 <section class="text-neutral-900">
   <div class="max-w-auto mx-auto px-2 py-6">
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-col gap-3
+              md:flex-row items-center justify-between">
       <div>
-        <h1 class="text-2xl font-primary">Tipos de Maquinaria</h1>
+        <h1 class="text-2xl font-primary">Tipo de Línea de Trabajo</h1>
         <p class="text-neutral-500 text-sm">Total: {{ total }}</p>
       </div>
       <div class="flex gap-2">
-        <a href="{% url 'tipo_create' %}?next={{ request.get_full_path|urlencode }}" class="h-11 px-4 rounded-md bg-green-500 text-white">Nuevo tipo</a>
+        <a href="{% url 'tipo_create' %}?next={{ request.get_full_path|urlencode }}" class="h-11 px-4 py-2 rounded-md bg-green-500 text-white">+ Nuevo tipo</a>
       </div>
     </div>
 
@@ -48,7 +49,11 @@
               {% endif %}
             </td>
             <td class="px-4 py-3 text-right">
-              <a href="{% url 'tipo_edit' t.pk %}?next={{ request.get_full_path|urlencode }}" class="inline-flex items-center h-9 px-3 rounded-lg bg-amber-300 text-white">Editar</a>
+              <a href="{% url 'tipo_edit' t.pk %}?next={{ request.get_full_path|urlencode }}" class="inline-flex items-center h-9 px-3 rounded-lg bg-amber-300 text-white">
+                <svg class="md:size-5 size-4  text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
+                  </svg>
+              </a>
             </td>
           </tr>
           {% empty %}

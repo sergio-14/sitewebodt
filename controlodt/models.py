@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.db.models import Max
 
 
 # --- Manager ---
@@ -116,8 +117,8 @@ class TipoMaquinaria(models.Model):
     activo = models.BooleanField(_('Activo'), default=True)
 
     class Meta:
-        verbose_name = _('Tipo de Maquinaria')
-        verbose_name_plural = _('Tipos de Maquinaria')
+        verbose_name = _('Línea')
+        verbose_name_plural = _('Líneas de trabajo')
         ordering = ['nombre']
 
     def __str__(self):
@@ -142,8 +143,8 @@ class Maquinaria(models.Model):
     activo = models.BooleanField(_('Activo'), default=True)
 
     class Meta:
-        verbose_name = _('Maquinaria')
-        verbose_name_plural = _('Maquinarias')
+        verbose_name = _('Equipo de Trabajo')
+        verbose_name_plural = _('Equipos de Trabajo')
         ordering = ['tipo', 'nombre']
         constraints = [
             models.UniqueConstraint(fields=['codigo'], name='unique_maquinaria_codigo')
@@ -165,12 +166,13 @@ class RegistroODT(models.Model):
     """Orden de Trabajo / Registro ODT"""
     class EstadoODT(models.TextChoices):
         BORRADOR = 'BORRADOR', _('Borrador')
+        SOLICITUD = 'SOLICITUD', _('En Solicitud')
         ASIGNADA = 'ASIGNADA', _('Asignada')
         EN_EJECUCION = 'EN_EJECUCION', _('En ejecución')
-        REVISION = 'REVISION', _('En revisión')
+        REVISION = 'REVISION', _('revisado')
         APROBADA = 'APROBADA', _('Aprobada')
-        RECHAZADA = 'RECHAZADA', _('Rechazada por Revisión')
-        RECHAZADAA = 'RECHAZADAA', _('Rechazada en Aprobación')
+        RECHAZADA = 'RECHAZADA', _('R. por Revisión')
+        RECHAZADAA = 'RECHAZADAA', _('R. en Aprobación')
         CERRADA = 'CERRADA', _('Cerrada')
 
     prioridad_choices = [
@@ -185,20 +187,17 @@ class RegistroODT(models.Model):
     descripcion = models.TextField(_('Descripción del trabajo'))
     estado = models.CharField(_('Estado'), max_length=20, choices=EstadoODT.choices, default=EstadoODT.BORRADOR, db_index=True)
     prioridad = models.CharField(_('Prioridad'), max_length=10, choices=prioridad_choices, default='MEDIA')
-
+    parte_equipo = models.CharField(_('Parte Equipo'), max_length=200)
     creado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='odts_creadas', verbose_name=_('Creado por'))
     revisado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='odts_revisadas', verbose_name=_('Revisado por'))
     aprobado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='odts_aprobadas', verbose_name=_('Aprobado por'))
-
+    correlativo = models.PositiveIntegerField(unique=True, editable=False, null=True)
+    n_odt = models.PositiveIntegerField(unique=True, editable=False, null=True)
     fecha_programada = models.DateTimeField(_('Fecha/Hora programada'), null=True, blank=True)
     fecha_inicio = models.DateTimeField(_('Fecha/Hora inicio'), null=True, blank=True)
     fecha_termino = models.DateTimeField(_('Fecha/Hora termino'), null=True, blank=True)
 
     archivo_informe = models.FileField(_('Archivo informe'), upload_to='odt/informes/', null=True, blank=True)
-
-    observaciones = models.TextField(_('Observaciones / notas'), blank=True, null=True)
-    horas_estimadas = models.DecimalField(_('Horas estimadas'), max_digits=6, decimal_places=2, null=True, blank=True)
-    horas_reales = models.DecimalField(_('Horas reales'), max_digits=6, decimal_places=2, null=True, blank=True)
 
     creado_en = models.DateTimeField(_('Creado'), auto_now_add=True)
     actualizado_en = models.DateTimeField(_('Actualizado'), auto_now=True)
@@ -206,6 +205,9 @@ class RegistroODT(models.Model):
     class Meta:
         verbose_name = _('Registro ODT')
         verbose_name_plural = _('Registros ODT')
+        permissions = [
+            ("estadisticas", "Permiso para Estadisticas"),
+        ]
         ordering = ['-creado_en']
         indexes = [
             models.Index(fields=['estado']),
@@ -218,19 +220,17 @@ class RegistroODT(models.Model):
     # --- Métodos de Acción de Flujo de Trabajo ---
 
     def marcar_revision(self, usuario):
-        """Marcar revisión: asigna el revisor y pasa estado a REVISION (método original, usado por el OPERADOR)"""
-       
-        self.revisado_por = usuario 
+        """Operador solicita revisión: pasa a REVISION, creador queda igual."""
         self.estado = self.EstadoODT.REVISION
-        self.save(update_fields=['revisado_por', 'estado'])
+        self.save(update_fields=['estado'])
 
     
 
     def aprobar_revision(self, usuario):
-        """Supervisor aprueba la revisión. Registra al supervisor. Pasa a pendiente de Aprobación."""
-       
+        """Supervisor aprueba: asigna revisor y pasa a REVISION (pendiente Jefe de Área)"""
         self.revisado_por = usuario
-        self.save(update_fields=['revisado_por']) 
+        self.estado = self.EstadoODT.REVISION
+        self.save(update_fields=['revisado_por', 'estado'])
 
     def denegar_revision(self):
         """Supervisor deniega la revisión. Borra el campo revisado_por y regresa a EN_EJECUCION."""
@@ -249,3 +249,16 @@ class RegistroODT(models.Model):
         self.aprobado_por = None
         self.estado = self.EstadoODT.RECHAZADAA
         self.save(update_fields=['aprobado_por', 'estado'])
+
+    def save(self, *args, **kwargs):
+        if not self.correlativo:
+            self.correlativo = (RegistroODT.objects.aggregate(
+                Max('correlativo')
+            )['correlativo__max'] or 0) + 1
+
+        if not self.n_odt:
+            self.n_odt = (RegistroODT.objects.aggregate(
+                Max('n_odt')
+            )['n_odt__max'] or 0) + 1
+
+        super().save(*args, **kwargs)

@@ -116,14 +116,16 @@ USE_I18N = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-# Ruta donde se recopilan los archivos estáticos en producción
-STATIC_ROOT = BASE_DIR /'staticfiles'
+STATIC_URL = '/static/'
 
-# Directorio estático compartido para todas las apps
+# Carpeta donde Django COPIA los estáticos
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Carpetas donde tú DESARROLLAS los estáticos
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"

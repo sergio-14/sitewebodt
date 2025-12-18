@@ -1,135 +1,86 @@
 <!DOCTYPE html>
 {% load static %}
-
 <html lang="es" class="transition duration-500 ease-in-out">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mundo Magico</title>
 
-    <link rel="stylesheet" href="{% static 'src/dist/styles.css' %}" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Acme&family=Licorice&family=Ancizar+Sans:ital,wght@0,100..1000;1,100..1000&family=Anton&family=Bebas+Neue&family=Boldonse&family=Bungee&family=Cal+Sans&family=Dancing+Script:wght@400..700&family=Jaro:opsz@6..72&family=Lobster&family=Marck+Script&family=Oleo+Script:wght@400;700&family=Oswald:wght@200..700&family=Pacifico&family=Permanent+Marker&family=Playwrite+RO:wght@100..400&family=Protest+Strike&family=Roboto:ital,wght@0,100..900;1,100..900&family=Satisfy&family=Special+Gothic+Condensed+One&family=Teko:wght@300..700&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://unpkg.com/scrollreveal" defer></script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mundo Magico</title>
 
-    
-  </head>
+  <link rel="stylesheet" href="{% static 'src/dist/styles.css' %}" />
 
-  <body class="m-0 bg-white ">
-    <!-- HERO -->
-    <section class="relative h-screen m-0 overflow-hidden" id="shapes-section">
-      <div class="absolute inset-0" id="shapes-container"></div>
-    <script>
-const images = [
-  "{% static 'src/img/p1.png' %}",
-  "{% static 'src/img/p2.png' %}",
-  "{% static 'src/img/p3.png' %}",
-  "{% static 'src/img/p4.png' %}",
-  "{% static 'src/img/p5.png' %}",
-  "{% static 'src/img/p6.png' %}",
-  "{% static 'src/img/p7.png' %}",
-];
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Acme&family=Licorice&family=Ancizar+Sans&family=Anton&family=Bebas+Neue&family=Lobster&family=Oswald&family=Pacifico&family=Roboto&display=swap"
+    rel="stylesheet"
+  />
 
-const container = document.getElementById('shapes-container');
+  <script src="https://unpkg.com/scrollreveal" defer></script>
+</head>
 
-function random(min, max) {
-  return Math.random() * (max - min) + min;
-}
+<body class="m-0 bg-white overflow-x-hidden">
 
-function createShape() {
-  const img = document.createElement('img');
-  img.src = images[Math.floor(Math.random() * images.length)];
-  img.style.position = 'absolute';
-  img.style.width = random(30, 130) + 'px';
-  img.style.left = random(0, window.innerWidth - 150) + 'px';
-  img.style.bottom = '-200px';
-  img.style.opacity = 0;
-  img.style.transition = `all ${random(5, 10)}s linear`;
+  <!-- HERO -->
+  <section id="shapes-section" class="relative min-h-screen overflow-hidden">
 
-  container.appendChild(img);
+    <!-- Shapes -->
+    <div id="shapes-container" class="absolute inset-0"></div>
 
-  requestAnimationFrame(() => {
-    img.style.bottom = window.innerHeight + 'px';
-    img.style.opacity = 1;
-    img.style.transform = `rotate(${random(-180, 180)}deg)`;
-  });
-
-  setTimeout(() => {
-    img.remove();
-  }, 10000);
-}
-
-
-for (let i = 0; i < 10; i++) { 
-  createShape();
-}
-
-setInterval(createShape, 500);
-</script>
-
-    <div class="absolute inset-x-0 bottom-0 -z-10 w-full h-[530px]">
-      <img src="{% static 'src/img/bgfondo.png' %}" alt="Background" class="w-full h-full bottom-0 " />
+    <!-- Fondo -->
+    <div class="absolute inset-x-0 bottom-0 -z-10 h-[300px] md:h-[450px]">
+      <img src="{% static 'src/img/bgfondo.png' %}" class="w-full h-full md:h-auto  bottom-0 object-cover" />
     </div>
-    <div class="absolute bottom-0 right-0 z-10 w-auto h-[630px]">
-      <img src="{% static 'src/img/logo2.png' %}" alt="Background" class="w-auto h-full" />
+
+    <!-- Logo grande -->
+    <div class="absolute bottom-0 right-0 z-10 h-[350px] md:h-[630px]">
+      <img src="{% static 'src/img/logo2.png' %}" class="h-full w-auto" />
     </div>
-    <div class="absolute top-3 left-7 z-10 w-40 h-auto">
-      <img src="{% static 'src/img/logo.png' %}" alt="Background" class="w-auto h-full" />
+
+    <!-- Logo pequeño -->
+    <div class="absolute top-3 left-4 z-10 w-28 md:w-40">
+      <img src="{% static 'src/img/logo.png' %}" class="w-full h-auto" />
     </div>
-      <div class="max-w-7xl pt-20 h-dvh mx-auto px-5 md:px-10  grid md:grid-cols-5 items-center gap-8 relative z-10">
-        <!-- Columna Izquierda -->
-        <div class="md:col-span-2 order-2 md:order-1">
-          {% comment %} <div class="flex items-center">
-            <img src="{% static 'src/img/logomm.png' %}" alt="Inmobiliaria Villavicencio" class="w-30 h-auto" />
 
-          </div> {% endcomment %}
+    <!-- Contenido -->
+    <div class="relative z-10 max-w-7xl mx-auto px-5 md:px-10 pt-24 grid grid-cols-1 md:grid-cols-5 gap-8 items-center">
 
-          <h1 class="text-[28px] md:text-[45px] font-primary text-black leading-tight mb-3">
-            Bienvenido
-            <span class="text-white">
-              a Nuestra<br /> Fabrica de Sabores
-            </span>
-          </h1>
+      <!-- Texto -->
+      <div class="md:col-span-3 ">
+        <h1 class="text-[28px] md:text-[65px] font-primary leading-tight mb-3">
+          <span class="bg-linear-to-r from-red-900 to-red-300 bg-clip-text text-transparent">
+            Bienvenido a Nuestra<br />Fabrica de Sabores
+          </span>
+        </h1>
 
-          <p class="text-neutral-300 text-sm md:text-md mb-6">
-            Nudelpa SRL: Un espacio donde cada día es una nueva aventura. Creamos sabores seguro y estimulante para tu familia exploren, aprendan y crezcan felices. Confiabilidad, experiencia y atención personalizada para el desarrollo integral de tus hijos. Contamos con el equipo ideal para guiar cada etapa de su crecimiento y aprendizaje.
-          </p>
+        <p class="text-neutral-300 text-sm md:text-base md:max-w-[600px] mb-6">
+          Nudelpa SRL: Un espacio donde cada día es una nueva aventura. Creamos sabores seguros y estimulantes para tu familia.
+        </p>
 
-          <div class="flex flex-col md:flex-row gap-2">
-            <a href="#"
-               class="bg-linear-to-r from-red-900 to-red-700 hover:to-red-600 px-6 py-3 rounded-full text-white font-secondary transition flex items-center justify-center space-x-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4c.348 0 .686 .045 1.008 .128" /><path d="M19 16v3" /><path d="M19 22v.01" />
-              </svg>
-              <span>Comunica con Nosotros</span>
-            </a>
+        <div class="flex flex-col sm:flex-row gap-3 ">
+          <a
+            href="#"
+            class="bg-linear-to-r from-red-900 to-red-700 hover:to-red-600 px-6 py-3 rounded-full text-white transition flex items-center justify-center gap-2"
+          >
+            Comunica con Nosotros
+          </a>
 
-            <button id="openLoginModal"
-                    class="backdrop-blur-md text-center border border-neutral-50 hover:bg-neutral-50/20 bg-white/10 shadow-md text-white font-secondary px-6 py-3 rounded-full transition flex items-center justify-center space-x-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
-                <path d="M9 12h12l-3 -3" /><path d="M18 15l3 -3" />
-              </svg>
-              <span>Iniciar Sesión</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Columna Derecha -->
-        <div class="md:col-span-3 order-1 md:order-2 w-full h-[500px] relative bottom-0">
-          .
+          <button
+            id="openLoginModal"
+            class="backdrop-blur-lg border border-red-300/40 bg-white/50 hover:bg-white/20 text-red-500 md:text-white px-6 py-3 rounded-full transition"
+          >
+            Iniciar Sesión
+          </button>
         </div>
       </div>
 
-    </section>
-   
+      <!-- Espacio visual derecho -->
+      <div class="md:col-span-2  h-[300px] md:h-[500px]"></div>
+    </div>
+  </section>
 
-    <!-- Botones flotantes -->
-    <div class="fixed bottom-6 right-6 flex flex-col gap-4 z-40">
+  <div class="fixed bottom-6 right-6 flex flex-col gap-4 z-40">
       <!-- WhatsApp -->
       <a href="https://wa.me/573123456789" 
          target="_blank"
@@ -141,7 +92,7 @@ setInterval(createShape, 500);
 
       <!-- Botón subir -->
       <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
-              class="bg-slate-700 dark:bg-slate-600 hover:bg-slate-800 text-white p-3 rounded-full shadow-lg transition-all hover:scale-110">
+              class="bg-slate-700  hover:bg-slate-800 text-white p-3 rounded-full shadow-lg transition-all hover:scale-110">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
         </svg>
@@ -156,21 +107,21 @@ setInterval(createShape, 500);
         <div class="rounded-2xl py-6 bg-neutral-50  shadow-xl border border-neutral-200/10">
           <div class="flex items-center justify-between px-5 py-1">
             <h3 class="font-primary  text-xl">Iniciar sesión</h3>
-            <button id="closeLoginBtn" class="h-8 w-8 rounded-full dark:text-yellow-500 hover:bg-neutral-100 flex items-center justify-center" aria-label="Cerrar">
+            <button id="closeLoginBtn" class="h-8 w-8 rounded-full text-yellow-900 hover:bg-neutral-100 flex items-center justify-center" aria-label="Cerrar">
               <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </button>
           </div>
 
           <img src="{% static 'src/img/logo.png' %}" alt="Logo Villavicencio" class=" mx-auto w-40 h-auto" />
           
-          <form method="post" action="{% url 'login' %}" class="px-5 pt-2 pb-6 space-y-4 dark:text-green-50">
+          <form method="post" action="{% url 'login' %}" class="px-5 pt-2 pb-6 space-y-4 text-green-50">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}" />
 
             <div>
               <label class="block text-sm text-neutral-800 font-medium mb-1">Correo electrónico</label>
               <input type="email" name="email" value="{{ form.email.value|default_if_none:'' }}"
-                     class="w-full rounded-xl border border-neutral-500/20 px-3 h-11 focus:outline-none focus:ring-2 focus:ring-neutral-800"
+                     class="w-full rounded-xl text-slate-900 border border-neutral-500/20 px-3 h-11 focus:outline-none focus:ring-2 focus:ring-neutral-800"
                      placeholder="tucorreo@ejemplo.com" required />
               {% if form.email.errors %}
                 <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
@@ -180,7 +131,7 @@ setInterval(createShape, 500);
             <div>
               <label class="block text-sm text-neutral-800 font-medium mb-1">Contraseña</label>
               <input type="password" name="password"
-                     class="w-full rounded-xl border border-neutral-500/20 px-3 h-11 focus:outline-none focus:ring-2 focus:ring-neutral-800"
+                     class="w-full rounded-xl border text-slate-900 border-neutral-500/20 px-3 h-11 focus:outline-none focus:ring-2 focus:ring-neutral-800"
                      placeholder="••••••••" required />
               {% if form.password.errors %}
                 <p class="mt-1 text-sm text-red-600">{{ form.password.errors.0 }}</p>
@@ -199,7 +150,7 @@ setInterval(createShape, 500);
               <p class="text-sm text-red-600">{{ form.non_field_errors.0 }}</p>
             {% endif %}
 
-            <button type="submit" class="w-full inline-flex items-center justify-center rounded-xl h-11 font-semibold bg-red-500 dark:bg-red-600 text-white hover:opacity-90">
+            <button type="submit" class="w-full inline-flex items-center justify-center rounded-xl h-11 font-semibold bg-red-500  text-white hover:opacity-90">
               Entrar
             </button>
           </form>
@@ -269,5 +220,79 @@ setInterval(createShape, 500);
         }
       })();
     </script>
-  </body>
+  <!-- SCRIPTS -->
+  <script>
+const images = [
+  "{% static 'src/img/p1.png' %}",
+  "{% static 'src/img/p2.png' %}",
+  "{% static 'src/img/p3.png' %}",
+  "{% static 'src/img/p4.png' %}",
+  "{% static 'src/img/p5.png' %}",
+];
+
+const container = document.getElementById('shapes-container');
+
+function random(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function createShape() {
+  const img = document.createElement('img');
+  img.src = images[Math.floor(Math.random() * images.length)];
+  img.style.position = 'absolute';
+  
+  const size = random(30, 180); 
+  img.style.width = size + 'px';
+  img.style.left = random(0, window.innerWidth - size) + 'px';
+  
+  // Punto de partida
+  img.style.bottom = '-150px';
+  img.style.opacity = 0;
+  
+  // --- ALTURA DE MUERTE ALEATORIA ---
+  // El objeto puede morir desde el 20% hasta el 100% de la altura de la pantalla
+  const travelHeight = random(window.innerHeight * 0.2, window.innerHeight + 150);
+  
+  // La duración debe ser proporcional a la distancia para que no se vean frenéticas las que mueren cerca
+  const duration = random(3, 6); 
+  const targetOpacity = random(0.3, 0.7); // Opacidad aleatoria para profundidad
+
+  // Transiciones: notarás que añadí un retraso al opacity para el desvanecimiento final
+  img.style.transition = `bottom ${duration}s linear, 
+                          transform ${duration}s linear, 
+                          opacity ${duration * 0.5}s ease-in`;
+
+  container.appendChild(img);
+
+  // Forzar reflujo
+  img.getClientRects();
+
+  requestAnimationFrame(() => {
+    img.style.bottom = travelHeight + 'px';
+    img.style.opacity = targetOpacity;
+    img.style.transform = `rotate(${random(-360, 360)}deg)`;
+  });
+
+  // --- EFECTO DE DESVANECIMIENTO FINAL ---
+  // Empezamos a ocultar la imagen un poco antes de que termine su movimiento
+  setTimeout(() => {
+    img.style.opacity = 0;
+  }, (duration * 1000) * 0.7); // Empieza a desaparecer al 70% del camino
+
+  // Limpieza total
+  setTimeout(() => {
+    img.remove();
+  }, duration * 1000);
+}
+
+// Inicialización
+for (let i = 0; i < 15; i++) { 
+  setTimeout(createShape, random(0, 2000));
+}
+
+// Generación constante
+setInterval(createShape, 250); 
+</script>
+
+</body>
 </html>
