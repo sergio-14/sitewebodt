@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="text-neutral-900">
+  <div class="mx-auto px-4 py-6">
+
+    <h1 class="text-2xl md:text-3xl font-primary mb-2">{{ title }}</h1>
+    <p class="text-neutral-500 text-sm mb-6">Aprobación final de la orden de trabajo</p>
+
+    <!-- Info de la ODT -->
+    <div class="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 mb-6">
+      <p class="text-sm font-semibold text-emerald-900">ODT: {{ odt.titulo }}</p>
+      <p class="text-xs text-emerald-700">Equipo: {{ odt.maquinaria.nombre }} ({{ odt.maquinaria.codigo }})</p>
+      <p class="text-xs text-emerald-700">Revisado por: {{ odt.revisado_por.get_full_name|default:"—" }}</p>
+    </div>
+
+    <!-- Formulario de Aprobación -->
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-5">
+        <h3 class="text-lg font-semibold mb-4">Decisión Final</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-2">Decisión</label>
+            <div class="space-y-2">
+              {% for choice in form.decision %}
+              <div class="flex items-center">
+                {{ choice.tag }}
+                <label for="{{ choice.id_for_label }}" class="ml-2 text-sm">
+                  {{ choice.choice_label }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+            {% for e in form.decision.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Observaciones</label>
+            {{ form.observaciones }}
+            <p class="text-xs text-neutral-500 mt-1">Opcional. Puede agregar comentarios finales.</p>
+            {% for e in form.observaciones.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3">
+        <a href="{% url 'odt_detail' odt.pk %}"
+           class="h-11 px-5 rounded-xl border border-neutral-300 inline-flex items-center hover:bg-neutral-100">
+          Cancelar
+        </a>
+
+        <button type="submit"
+                class="h-11 px-6 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+          Confirmar Aprobación
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</section>
+{% endblock %}

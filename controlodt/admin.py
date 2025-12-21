@@ -35,10 +35,14 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
+from .models import Maquinaria, TipoMaquinaria, RegistroODT, DetalleEjecucion, Repuesto, PersonalNecesario
 
-
-admin.site.register(TipoMaquinaria)
 admin.site.register(Maquinaria)
+admin.site.register(TipoMaquinaria)
 admin.site.register(RegistroODT)
+admin.site.register(DetalleEjecucion)
+admin.site.register(Repuesto)
+admin.site.register(PersonalNecesario)
+
 
 # Register your models here.

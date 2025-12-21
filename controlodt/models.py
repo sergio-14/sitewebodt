@@ -111,8 +111,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.get_full_name()
 
 
+# =========================
+#     TIPO MAQUINARIA
+# =========================
 class TipoMaquinaria(models.Model):
-    """Tipo o familia de maquinaria (por ejemplo: excavadora, generador, bomba)"""
     nombre = models.CharField(_('Nombre'), max_length=100, unique=True)
     activo = models.BooleanField(_('Activo'), default=True)
 
@@ -125,27 +127,19 @@ class TipoMaquinaria(models.Model):
         return self.nombre
 
 
+# =========================
+#        MAQUINARIA
+# =========================
 class Maquinaria(models.Model):
-    """Registro de cada equipo / máquina"""
-    class Estado(models.TextChoices):
-        OPERATIVA = 'OPERATIVA', _('Operativa')
-        MANTENIMIENTO = 'MANTENIMIENTO', _('Mantención requerida')
-        EN_MANTENIMIENTO = 'EN_MANTENIMIENTO', _('En mantención')
-        FUERA_SERVICIO = 'FUERA_SERVICIO', _('Fuera de servicio')
-        DADO_BAJA = 'DADO_BAJA', _('Dado de baja')
-
-    tipo = models.ForeignKey(TipoMaquinaria, on_delete=models.PROTECT, related_name='maquinarias', verbose_name=_('Tipo'))
     nombre = models.CharField(_('Nombre/Modelo'), max_length=150)
     codigo = models.CharField(_('Código / Placa / Serie'), max_length=100, unique=True, db_index=True)
     descripcion = models.TextField(_('Descripción'), blank=True, null=True)
-    estado = models.CharField(_('Estado'), max_length=20, choices=Estado.choices, default=Estado.OPERATIVA, db_index=True)
-    responsable = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='maquinarias_responsable', verbose_name=_('Responsable'))
     activo = models.BooleanField(_('Activo'), default=True)
 
     class Meta:
         verbose_name = _('Equipo de Trabajo')
         verbose_name_plural = _('Equipos de Trabajo')
-        ordering = ['tipo', 'nombre']
+        ordering = ['nombre']
         constraints = [
             models.UniqueConstraint(fields=['codigo'], name='unique_maquinaria_codigo')
         ]
@@ -153,23 +147,34 @@ class Maquinaria(models.Model):
     def __str__(self):
         return f'{self.nombre} ({self.codigo})'
 
-    def needs_ot_creation(self, previous_estado: str | None) -> bool:
-        """
-        Determina si se debe generar automáticamente una ODT basándonos
-        en el cambio de estado.
-        """
-        triggers = {self.Estado.MANTENIMIENTO, self.Estado.FUERA_SERVICIO}
-        return (previous_estado not in triggers) and (self.estado in triggers)
+
+# =========================
+#        CHOICES
+# =========================
+class TipoTrabajo(models.TextChoices):
+    PREVENTIVO = 'PREVENTIVO', _('Preventivo')
+    CORRECTIVO = 'CORRECTIVO', _('Correctivo')
 
 
+class FallaEquipo(models.TextChoices):
+    MECANICO = 'MECANICO', _('Mecánico')
+    ELECTRICO = 'ELECTRICO', _('Eléctrico')
+    TERMICO = 'TERMICO', _('Térmico')
+    HIDRAULICO = 'HIDRAULICO', _('Hidráulico')
+    NEUMATICO = 'NEUMATICO', _('Neumático')
+    OTRO = 'OTRO', _('Otro')
+
+
+# =========================
+#        REGISTRO ODT
+# =========================
 class RegistroODT(models.Model):
-    """Orden de Trabajo / Registro ODT"""
     class EstadoODT(models.TextChoices):
         BORRADOR = 'BORRADOR', _('Borrador')
         SOLICITUD = 'SOLICITUD', _('En Solicitud')
         ASIGNADA = 'ASIGNADA', _('Asignada')
         EN_EJECUCION = 'EN_EJECUCION', _('En ejecución')
-        REVISION = 'REVISION', _('revisado')
+        REVISION = 'REVISION', _('Revisado')
         APROBADA = 'APROBADA', _('Aprobada')
         RECHAZADA = 'RECHAZADA', _('R. por Revisión')
         RECHAZADAA = 'RECHAZADAA', _('R. en Aprobación')
@@ -182,17 +187,41 @@ class RegistroODT(models.Model):
         ('URGENTE', _('Urgente')),
     ]
 
+    tipo = models.ForeignKey(TipoMaquinaria, on_delete=models.PROTECT, related_name='tipoodts', verbose_name=_('Tipo'))
     maquinaria = models.ForeignKey(Maquinaria, on_delete=models.CASCADE, related_name='odts', verbose_name=_('Maquinaria'))
+
     titulo = models.CharField(_('Título'), max_length=200)
     descripcion = models.TextField(_('Descripción del trabajo'))
-    estado = models.CharField(_('Estado'), max_length=20, choices=EstadoODT.choices, default=EstadoODT.BORRADOR, db_index=True)
+
+    estado = models.CharField(_('Estado'), max_length=20, choices=EstadoODT.choices,
+                              default=EstadoODT.BORRADOR, db_index=True)
+
     prioridad = models.CharField(_('Prioridad'), max_length=10, choices=prioridad_choices, default='MEDIA')
-    parte_equipo = models.CharField(_('Parte Equipo'), max_length=200)
-    creado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='odts_creadas', verbose_name=_('Creado por'))
-    revisado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='odts_revisadas', verbose_name=_('Revisado por'))
-    aprobado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='odts_aprobadas', verbose_name=_('Aprobado por'))
+
+    creado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+                                   related_name='odts_creadas', verbose_name=_('Creado por'))
+
+    revisado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='odts_revisadas', verbose_name=_('Revisado por'))
+
+    aprobado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='odts_aprobadas', verbose_name=_('Aprobado por'))
+
+    # ======= NUEVOS CAMPOS =======
+    tipo_trabajo = models.CharField(_('Tipo de trabajo'), max_length=12,
+                                    choices=TipoTrabajo.choices, default=TipoTrabajo.PREVENTIVO)
+
+    responsable_ejecucion = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                                              null=True, blank=True, related_name='odts_responsable',
+                                              verbose_name=_('Responsable de ejecución'))
+
+    autorizado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                                       null=True, blank=True, related_name='odts_autorizadas',
+                                       verbose_name=_('Autorizado por'))
+
     correlativo = models.PositiveIntegerField(unique=True, editable=False, null=True)
     n_odt = models.PositiveIntegerField(unique=True, editable=False, null=True)
+
     fecha_programada = models.DateTimeField(_('Fecha/Hora programada'), null=True, blank=True)
     fecha_inicio = models.DateTimeField(_('Fecha/Hora inicio'), null=True, blank=True)
     fecha_termino = models.DateTimeField(_('Fecha/Hora termino'), null=True, blank=True)
@@ -205,10 +234,17 @@ class RegistroODT(models.Model):
     class Meta:
         verbose_name = _('Registro ODT')
         verbose_name_plural = _('Registros ODT')
+        ordering = ['-creado_en']
         permissions = [
             ("estadisticas", "Permiso para Estadisticas"),
+            ("editar_completo_odt", "Puede editar completamente una ODT"),
+            ("revisar_odt", "Puede revisar ODTs"),
+            ("aprobar_odt", "Puede aprobar ODTs"),
+            ("autorizar_odt", "Puede autorizar ODTs"),
+            ("detalle_odt", "Puede ver el detalle odt"),
+            ("enviar_solicitud", "Puede enviar solicitud"),
+            ("mantenimiento_odt", "Puede Llenar mantenimiento"),
         ]
-        ordering = ['-creado_en']
         indexes = [
             models.Index(fields=['estado']),
             models.Index(fields=['prioridad']),
@@ -217,35 +253,16 @@ class RegistroODT(models.Model):
     def __str__(self):
         return f'ODT #{self.pk} - {self.titulo} [{self.get_estado_display()}]'
 
-    # --- Métodos de Acción de Flujo de Trabajo ---
-
     def marcar_revision(self, usuario):
-        """Operador solicita revisión: pasa a REVISION, creador queda igual."""
         self.estado = self.EstadoODT.REVISION
         self.save(update_fields=['estado'])
 
-    
-
-    def aprobar_revision(self, usuario):
-        """Supervisor aprueba: asigna revisor y pasa a REVISION (pendiente Jefe de Área)"""
-        self.revisado_por = usuario
-        self.estado = self.EstadoODT.REVISION
-        self.save(update_fields=['revisado_por', 'estado'])
-
-    def denegar_revision(self):
-        """Supervisor deniega la revisión. Borra el campo revisado_por y regresa a EN_EJECUCION."""
-        self.revisado_por = None
-        self.estado = self.EstadoODT.RECHAZADA
-        self.save(update_fields=['revisado_por', 'estado'])
-
     def aprobar_odt(self, usuario):
-        """Jefe de Área aprueba la ODT. Registra al jefe y cambia el estado a APROBADA."""
         self.aprobado_por = usuario
         self.estado = self.EstadoODT.APROBADA
         self.save(update_fields=['aprobado_por', 'estado'])
 
     def denegar_aprobacion(self):
-        """Jefe de Área deniega la aprobación. Borra el aprobado_por y cambia el estado a RECHAZADA."""
         self.aprobado_por = None
         self.estado = self.EstadoODT.RECHAZADAA
         self.save(update_fields=['aprobado_por', 'estado'])
@@ -262,3 +279,65 @@ class RegistroODT(models.Model):
             )['n_odt__max'] or 0) + 1
 
         super().save(*args, **kwargs)
+
+
+# =========================
+#   DETALLE EJECUCIÓN
+# =========================
+class DetalleEjecucion(models.Model):
+    registro = models.OneToOneField(RegistroODT, on_delete=models.CASCADE, related_name='detalle_ejecucion')
+
+    descripcion_falla = models.TextField(_('Descripción de la falla'), null=True, blank=True)
+    falla_tipo = models.CharField(_('Falla del equipo'), max_length=12,
+                                  choices=FallaEquipo.choices, default=FallaEquipo.OTRO)
+
+    hora_inicio_trabajo = models.DateTimeField(_('Hora de inicio del trabajo'), null=True, blank=True)
+    hora_fin_trabajo = models.DateTimeField(_('Hora de finalización del trabajo'), null=True, blank=True)
+
+    tareas_realizadas = models.TextField(_('Tareas realizadas'), null=True, blank=True)
+
+    medidas_seguridad = models.TextField(_('Medidas de seguridad'), null=True, blank=True)
+    observaciones = models.TextField(_('Observaciones'), null=True, blank=True)
+
+    ejecutado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                                      null=True, blank=True, related_name='odts_ejecutadas',
+                                      verbose_name=_('Ejecutado por'))
+
+    firmado_fecha = models.DateTimeField(_('Fecha firma/Finalización'), null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.ejecutado_por and self.registro.autorizado_por:
+            self.ejecutado_por = self.registro.autorizado_por
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'Detalle Ejecución ODT #{self.registro.pk}'
+
+
+# =========================
+#        REPUESTOS
+# =========================
+class Repuesto(models.Model):
+    registro = models.ForeignKey(RegistroODT, on_delete=models.CASCADE, related_name='repuestos')
+    codigo = models.CharField(_('Código'), max_length=100, null=True, blank=True)
+    descripcion = models.CharField(_('Descripción del repuesto'), max_length=255)
+    cantidad_utilizada = models.DecimalField(_('Cantidad utilizada'), max_digits=8, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f'{self.codigo or ""} - {self.descripcion} ({self.cantidad_utilizada})'
+
+
+# =========================
+#  PERSONAL NECESARIO
+# =========================
+class PersonalNecesario(models.Model):
+    registro = models.ForeignKey(RegistroODT, on_delete=models.CASCADE, related_name='personal_necesario')
+    categoria = models.CharField(_('Categoría'), max_length=120, null=True, blank=True)
+    trabajador = models.CharField(_('Trabajador'), max_length=120, null=True, blank=True)
+    horas_trabajadas = models.DecimalField(_('Horas trabajadas'), max_digits=6, decimal_places=2, default=0)
+
+    def __str__(self):
+        if self.trabajador:
+            return f'{self.trabajador} - {self.horas_trabajadas}h'
+        return f'{self.categoria or "Sin categoría"} - {self.horas_trabajadas}h'
+        

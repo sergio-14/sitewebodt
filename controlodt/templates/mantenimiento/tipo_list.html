@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="text-neutral-900">
+
+<div class="mx-auto px-4 py-6">
+  <div class="flex items-center justify-between mb-6">
+      <div>
+          <h1 class="text-2xl font-primary">{{ title }}</h1>
+          <p class="text-sm text-neutral-500">Listado de líneas de trabajo</p>
+      </div>
+
+      <a href="{% url 'tipo_create' %}"
+         class="h-11 px-4 rounded-xl bg-green-600 text-white hover:opacity-90">
+         Nueva línea
+      </a>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full bg-neutral-100 border border-neutral-200 rounded-xl">
+      <thead class="bg-slate-900 text-neutral-100">
+        <tr>
+          <th class="px-4 py-3 text-left">Nombre</th>
+          <th class="px-4 py-3 text-left">Estado</th>
+          <th class="px-4 py-3 text-center">Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for t in tipos %}
+        <tr class="border-t hover:bg-neutral-200 text-sm">
+          <td class="px-4 py-3">{{ t.nombre }}</td>
+
+          <td class="px-4 py-3">
+            {% if t.activo %}
+            <span class="px-2 py-1 text-xs rounded-full bg-green-200 text-green-700">Activo</span>
+            {% else %}
+            <span class="px-2 py-1 text-xs rounded-full bg-red-200 text-red-700">Inactivo</span>
+            {% endif %}
+          </td>
+
+          <td class="px-4 py-3 text-center flex gap-2 justify-center">
+            <a href="{% url 'tipo_edit' t.pk %}"
+               class="px-3 py-2 rounded-lg bg-amber-400 text-white">Editar</a>
+
+            <a href="{% url 'tipo_toggle' t.pk %}"
+               class="px-3 py-2 rounded-lg bg-slate-900 text-white">
+               {% if t.activo %} Deshabilitar {% else %} Activar {% endif %}
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="text-center py-6 text-neutral-500">
+            No hay registros.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+
+</section>
+{% endblock %}

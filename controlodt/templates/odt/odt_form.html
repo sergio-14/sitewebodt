@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="text-neutral-900">
+  <div class="mx-auto px-4 py-6">
+
+    <h1 class="text-2xl md:text-3xl font-primary mb-2">{{ title }}</h1>
+    <p class="text-neutral-500 text-sm mb-6">Complete los datos de la orden de trabajo</p>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Línea de Trabajo</label>
+          {{ form.tipo }}
+          {% for e in form.tipo.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+          {% endfor %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Equipo / Maquinaria</label>
+          {{ form.maquinaria }}
+          {% for e in form.maquinaria.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+          {% endfor %}
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium mb-1">Título</label>
+          {{ form.titulo }}
+          {% for e in form.titulo.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+          {% endfor %}
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium mb-1">Descripción del Trabajo</label>
+          {{ form.descripcion }}
+          {% for e in form.descripcion.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+          {% endfor %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Prioridad</label>
+          {{ form.prioridad }}
+          {% for e in form.prioridad.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Encargadode Area </label>
+          {{ form.autorizado_por }}
+          {% for e in form.autorizado_por.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+          {% endfor %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Foto de Fallo</label>
+          {{ form.archivo_informe }}
+          {% for e in form.archivo_informe.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+          {% endfor %}
+        </div>
+
+      </div>
+
+      <div class="flex items-center justify-end gap-3">
+        <a href="{% url 'odt_list' %}"
+           class="h-11 px-5 rounded-xl border border-neutral-300 inline-flex items-center hover:bg-neutral-100">
+          Cancelar
+        </a>
+
+        <button type="submit"
+                class="h-11 px-6 rounded-xl bg-neutral-900 text-white font-semibold hover:opacity-90">
+          Crear ODT
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</section>
+{% endblock %}

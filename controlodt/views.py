@@ -317,422 +317,574 @@ def group_edit(request, pk):
         "group_obj": group,
         "next_url": next_url,
     })
-    
 
-from django.db.models import Q
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from .models import TipoMaquinaria, Maquinaria
 from .forms import TipoMaquinariaForm, MaquinariaForm
 
-# ----- TipoMaquinaria -----
-@login_required
-@permission_required('controlodt.view_user', raise_exception=True)
+
+# =======================
+#   TIPO MAQUINARIA
+# =======================
 def tipo_list(request):
-    q = request.GET.get('q', '').strip()
-    per_page = int(request.GET.get('per_page', 10))
-    page = request.GET.get('page', 1)
-
-    qs = TipoMaquinaria.objects.all().order_by('nombre')
-    if q:
-        qs = qs.filter(nombre__icontains=q)
-
-    paginator = Paginator(qs, per_page)
-    page_obj = paginator.get_page(page)
-
-    context = {
-        'page_obj': page_obj,
-        'q': q,
-        'per_page': per_page,
-        'per_page_options': [5, 10, 20, 50],
-        'total': qs.count(),
-    }
-    return render(request, 'maquinaria/listar_tipo_maquinaria.html', context)
+    tipos = TipoMaquinaria.objects.all()
+    return render(request, "mantenimiento/tipo_list.html", {
+        "tipos": tipos,
+        "title": "Líneas de Trabajo"
+    })
 
 
-@login_required
-@permission_required('controlodt.add_user', raise_exception=True)
 def tipo_create(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = TipoMaquinariaForm(request.POST)
         if form.is_valid():
-            obj = form.save()
-            messages.success(request, 'Tipo de maquinaria creado.')
-            next_url = request.POST.get('next') or reverse('tipo_list')
-            return redirect(next_url)
+            form.save()
+            messages.success(request, "Registro creado correctamente")
+            return redirect("tipo_list")
     else:
         form = TipoMaquinariaForm()
-    return render(request, 'maquinaria/tipo_maquinaria_form.html', {'form': form, 'title': 'Nueva Línea de Trabajo', 'next_url': request.GET.get('next', reverse('tipo_list'))})
 
-@login_required
-@permission_required('controlodt.change_user', raise_exception=True)
+    return render(request, "mantenimiento/tipo_form.html", {
+        "form": form,
+        "title": "Nueva Línea de Trabajo"
+    })
+
+
 def tipo_edit(request, pk):
     obj = get_object_or_404(TipoMaquinaria, pk=pk)
-    if request.method == 'POST':
+
+    if request.method == "POST":
         form = TipoMaquinariaForm(request.POST, instance=obj)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Tipo de maquinaria actualizado.')
-            next_url = request.POST.get('next') or reverse('tipo_list')
-            return redirect(next_url)
+            messages.success(request, "Registro actualizado correctamente")
+            return redirect("tipo_list")
     else:
         form = TipoMaquinariaForm(instance=obj)
-    return render(request, 'maquinaria/tipo_maquinaria_form.html', {'form': form, 'title': f'Editar tipo: {obj.nombre}', 'next_url': request.GET.get('next', reverse('tipo_list'))})
+
+    return render(request, "mantenimiento/tipo_form.html", {
+        "form": form,
+        "title": "Editar Línea de Trabajo",
+        "is_edit": True
+    })
 
 
-# ----- Maquinaria -----
-@login_required
-@permission_required('controlodt.view_user', raise_exception=True)
+def tipo_toggle(request, pk):
+    obj = get_object_or_404(TipoMaquinaria, pk=pk)
+    obj.activo = not obj.activo
+    obj.save()
+    return redirect("tipo_list")
+
+
+# =======================
+#       MAQUINARIA
+# =======================
 def maquinaria_list(request):
-    q = request.GET.get('q', '').strip()
-    tipo = request.GET.get('tipo', '')
-    estado = request.GET.get('estado', '')
-    per_page = int(request.GET.get('per_page', 10))
-    page = request.GET.get('page', 1)
-
-    qs = Maquinaria.objects.select_related('tipo', 'responsable').all().order_by('tipo__nombre', 'nombre')
-
-    if q:
-        qs = qs.filter(Q(nombre__icontains=q) | Q(codigo__icontains=q) | Q(descripcion__icontains=q))
-    if tipo:
-        qs = qs.filter(tipo_id=tipo)
-    if estado:
-        qs = qs.filter(estado=estado)
-
-    paginator = Paginator(qs, per_page)
-    page_obj = paginator.get_page(page)
-
-    tipos = TipoMaquinaria.objects.filter(activo=True).order_by('nombre')
-
-    context = {
-        'page_obj': page_obj,
-        'q': q,
-        'tipo_selected': tipo,
-        'estado_selected': estado,
-        'tipos': tipos,
-        'per_page': per_page,
-        'per_page_options': [5, 10, 20, 50],
-        'total': qs.count(),
-    }
-    return render(request, 'maquinaria/listar_maquinaria.html', context)
+    maquinas = Maquinaria.objects.select_related().all()
+    return render(request, "mantenimiento/maquinaria_list.html", {
+        "maquinas": maquinas,
+        "title": "Equipos de Trabajo"
+    })
 
 
-@login_required
-@permission_required('controlodt.add_user', raise_exception=True)
 def maquinaria_create(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = MaquinariaForm(request.POST)
         if form.is_valid():
-            obj = form.save()
-            messages.success(request, 'Maquinaria creada.')
-            return redirect(request.POST.get('next') or reverse('maquinaria_list'))
+            form.save()
+            messages.success(request, "Equipo registrado correctamente")
+            return redirect("maquinaria_list")
     else:
         form = MaquinariaForm()
-    return render(request, 'maquinaria/maquinaria_form.html', {'form': form, 'title': 'Nuevo Equipo de Trabajo', 'next_url': request.GET.get('next', reverse('maquinaria_list'))})
+
+    return render(request, "mantenimiento/maquinaria_form.html", {
+        "form": form,
+        "title": "Registrar Equipo"
+    })
 
 
-@login_required
-@permission_required('controlodt.change_user', raise_exception=True)
 def maquinaria_edit(request, pk):
     obj = get_object_or_404(Maquinaria, pk=pk)
-    if request.method == 'POST':
+
+    if request.method == "POST":
         form = MaquinariaForm(request.POST, instance=obj)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Maquinaria actualizada.')
-            return redirect(request.POST.get('next') or reverse('maquinaria_list'))
+            messages.success(request, "Equipo actualizado correctamente")
+            return redirect("maquinaria_list")
     else:
         form = MaquinariaForm(instance=obj)
-    return render(request, 'maquinaria/maquinaria_form.html', {'form': form, 'title': f'Editar Equipo: {obj.nombre}', 'next_url': request.GET.get('next', reverse('maquinaria_list'))})
 
-def cambiar_estado_maquinaria(request, pk):
-    if request.method == 'POST':
-        maquinaria = get_object_or_404(Maquinaria, pk=pk)
-        nuevo_estado = request.POST.get('nuevo_estado')
-        
-        # Validar que el estado enviado sea uno de los permitidos
-        if nuevo_estado in Maquinaria.Estado.values:
-            estado_anterior = maquinaria.estado
-            maquinaria.estado = nuevo_estado
-            maquinaria.save()
-            
-            # Aquí podrías disparar la creación de ODT si usas el método needs_ot_creation
-            messages.success(request, f'Estado de {maquinaria.codigo} actualizado a {maquinaria.get_estado_display()}')
-        else:
-            messages.error(request, 'Estado no válido.')
-            
-    return redirect('maquinaria_list')
+    return render(request, "mantenimiento/maquinaria_form.html", {
+        "form": form,
+        "title": "Editar Equipo",
+        "is_edit": True
+    })
 
+
+def maquinaria_toggle(request, pk):
+    obj = get_object_or_404(Maquinaria, pk=pk)
+    obj.activo = not obj.activo
+    obj.save()
+    return redirect("maquinaria_list")
+
+
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import transaction
 from django.utils import timezone
-from .models import RegistroODT, Maquinaria
-from .forms import RegistroODTForm
+from django.db.models import Q
+from .models import RegistroODT, DetalleEjecucion
+from .forms import (
+    ODTCreateForm, ODTAsignarResponsableForm, DetalleEjecucionForm,
+    RepuestoFormSet, PersonalFormSet, ODTRevisionForm, ODTAprobacionForm,
+    ODTEditGeneralForm  # Nuevo formulario
+)
 
+
+# =========================
+# HELPER: Verificar permisos de edición
+# =========================
+
+def puede_editar_odt(user, odt):
+    """
+    Determina si un usuario puede editar una ODT.
+    Pueden editar:
+    - El que autorizó la ODT
+    - El que revisó la ODT
+    - Usuarios con permiso 'odt.editar_completo'
+    - Superusuarios
+    """
+    if user.is_superuser:
+        return True
+    
+    # Verificar si tiene el permiso específico
+    if user.has_perm('app.editar_completo_odt'):  # Ajusta 'app' al nombre de tu app
+        return True
+    
+    # Verificar si es el autorizado o el revisor
+    if odt.autorizado_por == user or odt.revisado_por == user:
+        return True
+    
+    return False
+
+
+# =========================
+# VISTA: Listado de ODTs
+# =========================
 @login_required
-@permission_required('controlodt.view_user', raise_exception=True)
+@permission_required('controlodt.view_registroodt', raise_exception=True)
 def odt_list(request):
-    q = request.GET.get('q', '').strip()
-    estado = request.GET.get('estado', '')
-    prioridad = request.GET.get('prioridad', '')
-    per_page = int(request.GET.get('per_page', 10))
-    page = request.GET.get('page', 1)
+    user = request.user
 
-    qs = RegistroODT.objects.select_related('maquinaria', 'creado_por','revisado_por', 'aprobado_por').all().order_by('-creado_en')
+    # Si es superuser → todo
+    if user.is_superuser:
+        odts = RegistroODT.objects.all()
 
-    if q:
-        qs = qs.filter(Q(titulo__icontains=q) | Q(descripcion__icontains=q) | Q(maquinaria__nombre__icontains=q) | Q(maquinaria__codigo__icontains=q))
-    if estado:
-        qs = qs.filter(estado=estado)
-    if prioridad:
-        qs = qs.filter(prioridad=prioridad)
+    # Si tiene permiso de aprobar o autorizar → todo
+    elif user.has_perm('controlodt.aprobar_odt') or user.has_perm('controlodt.revisar_odt'):
+        odts = RegistroODT.objects.all()
 
-    paginator = Paginator(qs, per_page)
-    page_obj = paginator.get_page(page)
+    # Si no → solo lo relacionado con él
+    else:
+        odts = RegistroODT.objects.filter(
+            Q(creado_por=user) |
+            Q(responsable_ejecucion=user) |
+            Q(autorizado_por=user) |
+            Q(revisado_por=user)
+        ).distinct()
 
     context = {
-        'page_obj': page_obj,
-        'q': q,
-        'estado_selected': estado,
-        'prioridad_selected': prioridad,
-        'per_page': per_page,
-        'per_page_options': [5, 10, 20, 50],
-        'total': qs.count(),
+        'title': 'Órdenes de Trabajo',
+        'odts': odts.select_related('tipo', 'maquinaria', 'creado_por', 'responsable_ejecucion')
     }
-    return render(request, 'controlodt/listar_odt.html', context)
+    return render(request, 'odt/odt_list.html', context)
 
-def user_in_group(user, group_name):
-    return user.groups.filter(name=group_name).exists()
 
-    
+# =========================
+# VISTA: Crear ODT
+# =========================
+
 @login_required
-@permission_required('controlodt.add_registroot', raise_exception=True) # Usamos el permiso correcto de ODT
+@permission_required('controlodt.view_registroodt', raise_exception=True)
 def odt_create(request):
+    """
+    Permite a un usuario crear una nueva ODT.
+    Estado inicial: BORRADOR
+    """
     if request.method == 'POST':
-        form = RegistroODTForm(request.POST, request.FILES)
-        # Importante: También debemos filtrar en el POST para validar que no enviaron una ID prohibida
-        form.fields['maquinaria'].queryset = Maquinaria.objects.exclude(
-            estado__in=[
-                Maquinaria.Estado.OPERATIVA,
-                Maquinaria.Estado.DADO_BAJA,
-                Maquinaria.Estado.EN_MANTENIMIENTO
-            ]
-        )
-        
+        form = ODTCreateForm(request.POST)
         if form.is_valid():
             odt = form.save(commit=False)
             odt.creado_por = request.user
-            odt.estado = RegistroODT.EstadoODT.SOLICITUD
+            odt.estado = RegistroODT.EstadoODT.BORRADOR
             odt.save()
-            
-            messages.success(request, 'ODT creada y enviada a revisión del Supervisor.')
-            return redirect(request.POST.get('next') or reverse('odt_list'))
+            messages.success(request, f'ODT #{odt.pk} creada exitosamente.')
+            return redirect('odt_detail', pk=odt.pk)
     else:
-        form = RegistroODTForm()
-        # --- AQUÍ APLICAMOS EL FILTRO ---
-        form.fields['maquinaria'].queryset = Maquinaria.objects.exclude(
-            estado__in=[
-                Maquinaria.Estado.OPERATIVA,
-                Maquinaria.Estado.DADO_BAJA,
-                Maquinaria.Estado.EN_MANTENIMIENTO
-            ]
-        )
-        
-    return render(request, 'controlodt/odt_form.html', {
-        'form': form, 
-        'title': 'Nuevo Formulario Orden de Trabajo', 
-        'next_url': request.GET.get('next', reverse('odt_list'))
-    })
-
-@login_required
-@permission_required('controlodt.change_user', raise_exception=True)
-def odt_edit(request, pk):
-    odt = get_object_or_404(RegistroODT, pk=pk)
-    if request.method == 'POST':
-        form = RegistroODTForm(request.POST, request.FILES, instance=odt)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'ODT actualizada.')
-            return redirect(request.POST.get('next') or reverse('odt_list'))
-    else:
-        form = RegistroODTForm(instance=odt)
-    return render(request, 'controlodt/odt_form.html', {'form': form, 'title': f'Editar ODT #{odt.pk}', 'odt': odt, 'next_url': request.GET.get('next', reverse('odt_list'))})
-
-
-@login_required
-
-def odt_detail(request, pk):
-    odt = get_object_or_404(RegistroODT, pk=pk)
-    return render(request, 'controlodt/odt_detail.html', {'odt': odt})
-
-
-# ---------- ACCIONES DEL FLUJO ----------
-@login_required
-def odt_request_review(request, pk):
-    """Solicitar revisión: cambia estado a REVISION (quien lo pidió queda como creado_por)"""
-    odt = get_object_or_404(RegistroODT, pk=pk)
-    if request.method == 'POST':
-        odt.estado = RegistroODT.EstadoODT.REVISION
-        odt.save(update_fields=['estado', 'actualizado_en'])
-        messages.success(request, 'ODT marcada para revisión.')
-    return redirect(request.POST.get('next') or reverse('odt_list'))
-
-
-@login_required
-def odt_mark_review(request, pk):
-    if not user_in_group(request.user, 'Supervisor'):
-        messages.error(request, 'No tienes permisos para marcar la ODT como revisada.')
-        return redirect('odt_list')
-
-    odt = get_object_or_404(RegistroODT, pk=pk)
-    if request.method == 'POST':
-        odt.revisado_por = request.user
-        odt.save(update_fields=['revisado_por', 'actualizado_en'])
-        messages.success(request, 'ODT marcada como revisada.')
-    return redirect(request.POST.get('next') or reverse('odt_list'))
-
-
-@login_required
-def odt_approve(request, pk):
-    if not user_in_group(request.user, 'Jefe de Área'):
-        messages.error(request, 'No tienes permisos para aprobar esta ODT.')
-        return redirect('odt_list')
-
-    odt = get_object_or_404(RegistroODT, pk=pk)
-    if request.method == 'POST':
-        odt.aprobado_por = request.user
-        odt.estado = RegistroODT.EstadoODT.APROBADA
-        odt.fecha_termino = odt.fecha_termino or timezone.now()
-        odt.save(update_fields=['aprobado_por', 'estado', 'fecha_termino', 'actualizado_en'])
-        messages.success(request, 'ODT aprobada.')
-    return redirect(request.POST.get('next') or reverse('odt_list'))
-
-
-@login_required
-def mis_notificaciones(request):
-    user = request.user
+        form = ODTCreateForm()
     
-    is_supervisor = user.groups.filter(name='Supervisor').exists()
-    is_jefe_area = user.groups.filter(name='Jefe de Área').exists()
-
-    para_revisar = RegistroODT.objects.none()
-    para_aprobar = RegistroODT.objects.none()
-    asignadas = RegistroODT.objects.none()
-
-    if is_supervisor:
-        para_revisar = RegistroODT.objects.filter(
-            estado=RegistroODT.EstadoODT.SOLICITUD,
-            revisado_por__isnull=True
-        ).order_by('-creado_en')
-
-    if is_jefe_area:
-        para_aprobar = RegistroODT.objects.filter(
-            estado=RegistroODT.EstadoODT.REVISION,
-            revisado_por__isnull=False,  
-            aprobado_por__isnull=True
-        ).order_by('-creado_en')
-
-  
-    if user.groups.filter(name='Operador').exists():
-        asignadas = RegistroODT.objects.filter(
-           
-            estado__in=[RegistroODT.EstadoODT.BORRADOR, RegistroODT.EstadoODT.ASIGNADA]
-        ).order_by('-creado_en')
-
     context = {
-        'para_revisar': para_revisar,
-        'para_aprobar': para_aprobar,
-        'asignadas': asignadas,
-        'is_supervisor': is_supervisor, 
-        'is_jefe_area': is_jefe_area,   
+        'title': 'Nueva Orden de Trabajo',
+        'form': form
     }
-    return render(request, 'controlodt/mis_notificaciones.html', context)
+    return render(request, 'odt/odt_form.html', context)
 
 
-
-
-
+# =========================
+# VISTA: Detalle ODT
+# =========================
 @login_required
-def odt_aprobar_revision(request, pk):
+@permission_required('controlodt.detalle_odt', raise_exception=True)
+def odt_detail(request, pk):
+    """
+    Muestra el detalle completo de una ODT.
+    """
     odt = get_object_or_404(RegistroODT, pk=pk)
     
-    if not request.user.groups.filter(name='Supervisor').exists():
-        messages.error(request, "Permiso denegado.")
-        return redirect('mis_notificaciones')
-
-    # Cambiado: revisar si la ODT está en SOLICITUD y no ha sido revisada
-    if odt.estado == RegistroODT.EstadoODT.SOLICITUD and odt.revisado_por is None:
-        odt.aprobar_revision(request.user)  # esto debe cambiar estado a REVISION
-        # Si tu método aprobar_revision no cambia el estado, cámbialo también
-        odt.estado = RegistroODT.EstadoODT.REVISION
-        odt.save(update_fields=['revisado_por', 'estado'])
-        
-        messages.success(request, f"ODT #{odt.pk} revisada y pasada al Jefe de Área.")
-    else:
-        messages.warning(request, "Esta ODT no está pendiente de su revisión.")
-        
-    return redirect('mis_notificaciones')
+    # Verificar si puede editar
+    puede_editar = puede_editar_odt(request.user, odt)
+    
+    context = {
+        'title': f'ODT #{odt.pk}',
+        'odt': odt,
+        'puede_editar': puede_editar
+    }
+    return render(request, 'odt/odt_detail.html', context)
 
 
+# =========================
+# VISTA: Edición General ODT (Solo supervisores)
+# =========================
 @login_required
-def odt_denegar_revision(request, pk):
+@transaction.atomic
+@permission_required('controlodt.editar_completo_odt', raise_exception=True)
+def odt_editar_general(request, pk):
+    """
+    Permite editar todos los campos de la ODT.
+    Solo para usuarios autorizados, revisores o con permisos especiales.
+    """
     odt = get_object_or_404(RegistroODT, pk=pk)
     
-    if not request.user.groups.filter(name='Supervisor').exists():
-        messages.error(request, "Permiso denegado.")
-        return redirect('mis_notificaciones')
-
-    # Cambiado: revisar si la ODT está en SOLICITUD y no ha sido revisada
-    if odt.estado == RegistroODT.EstadoODT.SOLICITUD and odt.revisado_por is None:
-        odt.revisado_por = request.user
-        odt.estado = RegistroODT.EstadoODT.RECHAZADA
-        odt.save(update_fields=['estado', 'revisado_por'])
-
-        messages.error(request, f"ODT #{odt.pk} rechazada. El estado ha cambiado a 'Rechazada'.")
-    else:
-        messages.warning(request, "Esta ODT no está pendiente de su revisión.")
+    # Verificar permisos
+    if not puede_editar_odt(request.user, odt):
+        messages.error(request, 'No tienes permiso para editar esta ODT.')
+        return redirect('odt_detail', pk=pk)
+    
+    # Obtener o crear DetalleEjecucion si existe
+    detalle = None
+    if hasattr(odt, 'detalle_ejecucion'):
+        detalle = odt.detalle_ejecucion
+    
+    if request.method == 'POST':
+        form_odt = ODTEditGeneralForm(request.POST, instance=odt)
+        form_detalle = DetalleEjecucionForm(request.POST, instance=detalle) if detalle else None
+        formset_repuestos = RepuestoFormSet(request.POST, instance=odt)
+        formset_personal = PersonalFormSet(request.POST, instance=odt)
         
-    return redirect('mis_notificaciones')
+        if form_odt.is_valid() and formset_repuestos.is_valid() and formset_personal.is_valid():
+            # Guardar ODT
+            odt = form_odt.save()
+            
+            # Guardar detalle si existe
+            if form_detalle and form_detalle.is_valid():
+                form_detalle.save()
+            
+            # Guardar formsets
+            formset_repuestos.save()
+            formset_personal.save()
+            
+            messages.success(request, f'ODT #{odt.pk} actualizada exitosamente.')
+            return redirect('odt_detail', pk=pk)
+    else:
+        form_odt = ODTEditGeneralForm(instance=odt)
+        form_detalle = DetalleEjecucionForm(instance=detalle) if detalle else None
+        formset_repuestos = RepuestoFormSet(instance=odt)
+        formset_personal = PersonalFormSet(instance=odt)
+    
+    context = {
+        'title': f'Editar ODT #{odt.pk}',
+        'odt': odt,
+        'form_odt': form_odt,
+        'form_detalle': form_detalle,
+        'formset_repuestos': formset_repuestos,
+        'formset_personal': formset_personal
+    }
+    return render(request, 'odt/odt_editar_general.html', context)
 
 
+# =========================
+# VISTA: Enviar a Solicitud
+# =========================
 @login_required
-def odt_aprobar(request, pk):
+@permission_required('controlodt.enviar_solicitud', raise_exception=True)
+def odt_enviar_solicitud(request, pk):
+    """
+    El creador envía la ODT para solicitud (para que sea autorizada).
+    """
     odt = get_object_or_404(RegistroODT, pk=pk)
-  
-    if not request.user.groups.filter(name='Jefe de Área').exists():
-        messages.error(request, "Permiso denegado.")
-        return redirect('mis_notificaciones')
+    
+    if odt.creado_por != request.user:
+        messages.error(request, 'No tienes permiso para realizar esta acción.')
+        return redirect('odt_detail', pk=pk)
+    
+    if odt.estado != RegistroODT.EstadoODT.BORRADOR:
+        messages.warning(request, 'Esta ODT ya no está en borrador.')
+        return redirect('odt_detail', pk=pk)
+    
+    odt.estado = RegistroODT.EstadoODT.SOLICITUD
+    odt.save()
+    messages.success(request, f'ODT #{odt.pk} enviada a solicitud.')
+    return redirect('odt_detail', pk=pk)
 
-    if odt.estado == RegistroODT.EstadoODT.REVISION and odt.revisado_por is not None and odt.aprobado_por is None:
-        
-        
-        maquina = odt.maquinaria 
-        
-        maquina.estado = maquina.Estado.EN_MANTENIMIENTO
-        maquina.save(update_fields=['estado']) 
-        
-  
-        odt.aprobar_odt(request.user) 
-        
-        messages.success(request, f"ODT #{odt.pk} aprobada. La maquinaria {maquina.nombre} ha pasado a estado 'En Mantención'.")
-    else:
-        messages.warning(request, "Esta ODT no está pendiente de su aprobación.")
-        
-    return redirect('mis_notificaciones')
 
+# =========================
+# VISTA: Asignar Responsable (Usuario Autorizado)
+# =========================
 @login_required
-def odt_denegar_aprobacion(request, pk):
+@permission_required('controlodt.autorizar_odt', raise_exception=True)
+def odt_asignar_responsable(request, pk):
+    """
+    El usuario "autorizado" asigna el responsable de ejecución y aprueba la ODT.
+    Cambia estado a ASIGNADA.
+    """
     odt = get_object_or_404(RegistroODT, pk=pk)
-    if not request.user.groups.filter(name='Jefe de Área').exists():
-        messages.error(request, "Permiso denegado.")
-        return redirect('mis_notificaciones')
-
-    if odt.estado == RegistroODT.EstadoODT.REVISION and odt.revisado_por is not None and odt.aprobado_por is None:
-   
-        odt.denegar_aprobacion() 
-        
-        messages.info(request, f"ODT #{odt.pk} rechazada. El estado ha cambiado a 'Rechazada en Aprobación'.") 
+    
+    # Solo si está en SOLICITUD
+    if odt.estado != RegistroODT.EstadoODT.SOLICITUD:
+        messages.warning(request, 'Esta ODT no está en estado de solicitud.')
+        return redirect('odt_detail', pk=pk)
+    
+    if request.method == 'POST':
+        form = ODTAsignarResponsableForm(request.POST, instance=odt)
+        if form.is_valid():
+            odt = form.save(commit=False)
+            odt.autorizado_por = request.user
+            odt.estado = RegistroODT.EstadoODT.ASIGNADA
+            odt.save()
+            messages.success(request, f'Responsable asignado a ODT #{odt.pk}.')
+            return redirect('odt_detail', pk=pk)
     else:
-        messages.warning(request, "Esta ODT no está pendiente de ser rechazada.")
+        form = ODTAsignarResponsableForm(instance=odt)
+    
+    context = {
+        'title': f'Asignar Responsable - ODT #{odt.pk}',
+        'form': form,
+        'odt': odt
+    }
+    return render(request, 'odt/odt_asignar.html', context)
+
+
+# =========================
+# VISTA: Iniciar Ejecución
+# =========================
+@login_required
+@permission_required('controlodt.mantenimiento_odt', raise_exception=True)
+def odt_iniciar_ejecucion(request, pk):
+    """
+    El responsable de ejecución inicia la ODT.
+    Cambia estado a EN_EJECUCION.
+    """
+    odt = get_object_or_404(RegistroODT, pk=pk)
+    
+    if odt.responsable_ejecucion != request.user:
+        messages.error(request, 'No eres el responsable de esta ODT.')
+        return redirect('odt_detail', pk=pk)
+    
+    if odt.estado != RegistroODT.EstadoODT.ASIGNADA:
+        messages.warning(request, 'Esta ODT no está asignada.')
+        return redirect('odt_detail', pk=pk)
+    
+    odt.estado = RegistroODT.EstadoODT.EN_EJECUCION
+    odt.fecha_inicio = timezone.now()
+    odt.save()
+    
+    messages.success(request, f'ODT #{odt.pk} en ejecución.')
+    return redirect('odt_ejecutar', pk=pk)
+
+
+# =========================
+# VISTA: Ejecutar ODT (Completar Detalles)
+# =========================
+@login_required
+@transaction.atomic
+@permission_required('controlodt.mantenimiento_odt', raise_exception=True)
+def odt_ejecutar(request, pk):
+    """
+    El responsable completa los detalles de ejecución, repuestos y personal.
+    """
+    odt = get_object_or_404(RegistroODT, pk=pk)
+    
+    if odt.responsable_ejecucion != request.user:
+        messages.error(request, 'No eres el responsable de esta ODT.')
+        return redirect('odt_detail', pk=pk)
+    
+    if odt.estado not in [RegistroODT.EstadoODT.EN_EJECUCION, RegistroODT.EstadoODT.RECHAZADA]:
+        messages.warning(request, 'Esta ODT no está en ejecución.')
+        return redirect('odt_detail', pk=pk)
+    
+    # Obtener o crear DetalleEjecucion
+    detalle, created = DetalleEjecucion.objects.get_or_create(registro=odt)
+    
+    if request.method == 'POST':
+        form_detalle = DetalleEjecucionForm(request.POST, instance=detalle)
+        formset_repuestos = RepuestoFormSet(request.POST, instance=odt)
+        formset_personal = PersonalFormSet(request.POST, instance=odt)
         
-    return redirect('mis_notificaciones')
+        if form_detalle.is_valid() and formset_repuestos.is_valid() and formset_personal.is_valid():
+            # Guardar detalle
+            detalle = form_detalle.save(commit=False)
+            detalle.ejecutado_por = request.user
+            detalle.save()
+            
+            # Guardar formsets
+            formset_repuestos.save()
+            formset_personal.save()
+            
+            messages.success(request, 'Detalles de ejecución guardados.')
+            return redirect('odt_detail', pk=pk)
+    else:
+        form_detalle = DetalleEjecucionForm(instance=detalle)
+        formset_repuestos = RepuestoFormSet(instance=odt)
+        formset_personal = PersonalFormSet(instance=odt)
+    
+    context = {
+        'title': f'Ejecutar ODT #{odt.pk}',
+        'odt': odt,
+        'form_detalle': form_detalle,
+        'formset_repuestos': formset_repuestos,
+        'formset_personal': formset_personal
+    }
+    return render(request, 'odt/odt_ejecutar.html', context)
+
+
+# =========================
+# VISTA: Finalizar Ejecución (Enviar a Revisión)
+# =========================
+@login_required
+@permission_required('controlodt.autorizar_odt', raise_exception=True)
+def odt_finalizar_ejecucion(request, pk):
+    """
+    El responsable finaliza la ejecución y envía a revisión.
+    """
+    odt = get_object_or_404(RegistroODT, pk=pk)
+    
+    if odt.responsable_ejecucion != request.user:
+        messages.error(request, 'No eres el responsable de esta ODT.')
+        return redirect('odt_detail', pk=pk)
+    
+    if odt.estado != RegistroODT.EstadoODT.EN_EJECUCION:
+        messages.warning(request, 'Esta ODT no está en ejecución.')
+        return redirect('odt_detail', pk=pk)
+    
+    # Verificar que exista detalle de ejecución
+    if not hasattr(odt, 'detalle_ejecucion'):
+        messages.error(request, 'Debe completar los detalles de ejecución antes de finalizar.')
+        return redirect('odt_ejecutar', pk=pk)
+    
+    odt.estado = RegistroODT.EstadoODT.REVISION
+    odt.fecha_termino = timezone.now()
+    
+    # Actualizar fecha de firma en detalle
+    detalle = odt.detalle_ejecucion
+    detalle.firmado_fecha = timezone.now()
+    detalle.save()
+    
+    odt.save()
+    messages.success(request, f'ODT #{odt.pk} enviada a revisión.')
+    return redirect('odt_detail', pk=pk)
+
+
+# =========================
+# VISTA: Revisar ODT
+# =========================
+@login_required
+@permission_required('controlodt.revisar_odt', raise_exception=True)
+def odt_revisar(request, pk):
+    """
+    El revisor aprueba o rechaza la ODT en revisión.
+    """
+    odt = get_object_or_404(RegistroODT, pk=pk)
+    
+    if odt.estado != RegistroODT.EstadoODT.REVISION:
+        messages.warning(request, 'Esta ODT no está en revisión.')
+        return redirect('odt_detail', pk=pk)
+    
+    if request.method == 'POST':
+        form = ODTRevisionForm(request.POST)
+        if form.is_valid():
+            decision = form.cleaned_data['decision']
+            
+            if decision == 'aprobar':
+                odt.revisado_por = request.user
+                odt.estado = RegistroODT.EstadoODT.APROBADA
+                odt.save()
+                messages.success(request, f'ODT #{odt.pk} aprobada en revisión.')
+            else:
+                odt.estado = RegistroODT.EstadoODT.RECHAZADA
+                odt.save()
+                messages.warning(request, f'ODT #{odt.pk} rechazada. Devuelta a ejecución.')
+            
+            return redirect('odt_detail', pk=pk)
+    else:
+        form = ODTRevisionForm()
+    
+    context = {
+        'title': f'Revisar ODT #{odt.pk}',
+        'odt': odt,
+        'form': form
+    }
+    return render(request, 'odt/odt_revisar.html', context)
+
+
+# =========================
+# VISTA: Aprobación Final
+# =========================
+@login_required
+@permission_required('controlodt.aprobar_odt', raise_exception=True)
+def odt_aprobar_final(request, pk):
+    """
+    Aprobación final de la ODT (puede ser el mismo autorizado u otro usuario).
+    """
+    odt = get_object_or_404(RegistroODT, pk=pk)
+    
+    if odt.estado != RegistroODT.EstadoODT.APROBADA:
+        messages.warning(request, 'Esta ODT no está lista para aprobación final.')
+        return redirect('odt_detail', pk=pk)
+    
+    if request.method == 'POST':
+        form = ODTAprobacionForm(request.POST)
+        if form.is_valid():
+            decision = form.cleaned_data['decision']
+            
+            if decision == 'aprobar':
+                odt.aprobado_por = request.user
+                odt.estado = RegistroODT.EstadoODT.CERRADA
+                odt.save()
+                messages.success(request, f'ODT #{odt.pk} cerrada exitosamente.')
+            else:
+                odt.estado = RegistroODT.EstadoODT.RECHAZADAA
+                odt.save()
+                messages.warning(request, f'ODT #{odt.pk} rechazada en aprobación.')
+            
+            return redirect('odt_detail', pk=pk)
+    else:
+        form = ODTAprobacionForm()
+    
+    context = {
+        'title': f'Aprobación Final - ODT #{odt.pk}',
+        'odt': odt,
+        'form': form
+    }
+    return render(request, 'odt/odt_aprobar.html', context)
+
+
 
 
 import os

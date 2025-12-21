@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="text-neutral-900">
+  <div class="mx-auto px-4 py-6">
+
+    <h1 class="text-2xl md:text-3xl font-primary mb-2">{{ title }}</h1>
+    <p class="text-neutral-500 text-sm mb-6">Complete los detalles de la ejecución</p>
+
+    <!-- Info de la ODT -->
+    <div class="rounded-2xl bg-green-50 border border-green-200 p-4 mb-6">
+      <p class="text-sm font-semibold text-green-900">ODT: {{ odt.titulo }}</p>
+      <p class="text-xs text-green-700">Equipo: {{ odt.maquinaria.nombre }} ({{ odt.maquinaria.codigo }})</p>
+    </div>
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      <!-- DETALLES DE EJECUCIÓN -->
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-5">
+        <h3 class="text-lg font-semibold mb-4">Detalles de la Ejecución</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Descripción de la Falla</label>
+            {{ form_detalle.descripcion_falla }}
+            {% for e in form_detalle.descripcion_falla.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Tipo de Falla</label>
+            {{ form_detalle.falla_tipo }}
+            {% for e in form_detalle.falla_tipo.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div></div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Hora Inicio Trabajo</label>
+            {{ form_detalle.hora_inicio_trabajo }}
+            {% for e in form_detalle.hora_inicio_trabajo.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Hora Fin Trabajo</label>
+            {{ form_detalle.hora_fin_trabajo }}
+            {% for e in form_detalle.hora_fin_trabajo.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Tareas Realizadas</label>
+            {{ form_detalle.tareas_realizadas }}
+            {% for e in form_detalle.tareas_realizadas.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Medidas de Seguridad</label>
+            {{ form_detalle.medidas_seguridad }}
+            {% for e in form_detalle.medidas_seguridad.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Observaciones</label>
+            {{ form_detalle.observaciones }}
+            {% for e in form_detalle.observaciones.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+        </div>
+      </div>
+
+      <!-- REPUESTOS -->
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-5">
+        <h3 class="text-lg font-semibold mb-4">Repuestos Utilizados</h3>
+        
+        {{ formset_repuestos.management_form }}
+        
+        <div id="repuestos-container" class="space-y-4">
+          {% for form in formset_repuestos %}
+          <div class="formset-item bg-white rounded-xl p-4 border border-neutral-200">
+            {{ form.id }}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              <div>
+                <label class="block text-sm font-medium mb-1">Código</label>
+                {{ form.codigo }}
+                {% for e in form.codigo.errors %}
+                <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-1">Descripción</label>
+                {{ form.descripcion }}
+                {% for e in form.descripcion.errors %}
+                <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-1">Cantidad</label>
+                {{ form.cantidad_utilizada }}
+                {% for e in form.cantidad_utilizada.errors %}
+                <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+              </div>
+
+            </div>
+
+            {% if form.instance.pk %}
+            <div class="mt-2">
+              {{ form.DELETE }}
+              <label class="text-sm text-red-600">Eliminar</label>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+
+        <p class="text-xs text-neutral-500 mt-3">Use el formulario de gestión arriba para agregar más repuestos si es necesario</p>
+      </div>
+
+      <!-- PERSONAL NECESARIO -->
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-5">
+        <h3 class="text-lg font-semibold mb-4">Personal Necesario</h3>
+        
+        {{ formset_personal.management_form }}
+        
+        <div id="personal-container" class="space-y-4">
+          {% for form in formset_personal %}
+          <div class="formset-item bg-white rounded-xl p-4 border border-neutral-200">
+            {{ form.id }}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              <div>
+                <label class="block text-sm font-medium mb-1">Categoría</label>
+                {{ form.categoria }}
+                {% for e in form.categoria.errors %}
+                <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-1">Trabajador</label>
+                {{ form.trabajador }}
+                {% for e in form.trabajador.errors %}
+                <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-1">Horas Trabajadas</label>
+                {{ form.horas_trabajadas }}
+                {% for e in form.horas_trabajadas.errors %}
+                <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+              </div>
+
+            </div>
+
+            {% if form.instance.pk %}
+            <div class="mt-2">
+              {{ form.DELETE }}
+              <label class="text-sm text-red-600">Eliminar</label>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+
+        <p class="text-xs text-neutral-500 mt-3">Use el formulario de gestión arriba para agregar más personal si es necesario</p>
+      </div>
+
+      <div class="flex items-center justify-end gap-3">
+        <a href="{% url 'odt_detail' odt.pk %}"
+           class="h-11 px-5 rounded-xl border border-neutral-300 inline-flex items-center hover:bg-neutral-100">
+          Cancelar
+        </a>
+
+        <button type="submit"
+                class="h-11 px-6 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700">
+          Guardar Detalles
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</section>
+{% endblock %}

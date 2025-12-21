@@ -488,59 +488,219 @@ class GroupForm(TailwindFormMixin, forms.ModelForm):
             raise forms.ValidationError(_("Ya existe un grupo con ese nombre."))
         return name
 
+
 from .models import TipoMaquinaria, Maquinaria
 
 class TipoMaquinariaForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
         model = TipoMaquinaria
-        fields = ['nombre', 'activo']
-        widgets = {
-            'nombre': forms.TextInput(attrs={'placeholder': 'Nombre del tipo de maquinaria'}),
-        }
+        fields = ["nombre", "activo"]
 
 
 class MaquinariaForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
         model = Maquinaria
-        fields = ['tipo', 'nombre', 'codigo', 'descripcion', 'estado', 'responsable', 'activo']
-        widgets = {
-            'nombre': forms.TextInput(attrs={'placeholder': 'Nombre / Modelo'}),
-            'codigo': forms.TextInput(attrs={'placeholder': 'Código / Placa / Serie'}),
-            'descripcion': forms.Textarea(attrs={'placeholder': 'Descripción (opcional)'}),
-            'fecha_compra': forms.DateInput(attrs={'placeholder': 'Fecha de compra'}),
-        }
+        fields = ["nombre", "codigo", "descripcion", "activo"]
+    
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+from .models import (
+    RegistroODT, DetalleEjecucion, Repuesto, 
+    PersonalNecesario, User
+)
 
-        self.fields['responsable'].queryset = getattr(self.fields['responsable'], 'queryset', None) or \
-            __import__('django').contrib.auth.get_user_model().objects.filter(is_active=True)
+# =========================
+# FORM: Crear ODT (Usuario común)
+# =========================
+class ODTCreateForm(TailwindFormMixin, forms.ModelForm):
+    autorizado_por = forms.ModelChoiceField(
+        queryset=User.objects.filter(
+            groups__name='Jefe Área', 
+            is_active=True
+        ),
+        label=_('Será autorizado por'),
+        required=True
+    )
+    
+    class Meta:
+        model = RegistroODT
+        fields = ['tipo', 'maquinaria', 'titulo', 'descripcion', 
+                  'prioridad', 'autorizado_por', 'archivo_informe']
 
-        self.fields['tipo'].empty_label = "Seleccione tipo..."
-
-
-from .models import RegistroODT
-class RegistroODTForm(TailwindFormMixin, forms.ModelForm):
+class ODTEditGeneralForm(TailwindFormMixin, forms.ModelForm):
+    """
+    Formulario completo para editar una ODT.
+    """
     class Meta:
         model = RegistroODT
         fields = [
-            'maquinaria',
-            'titulo',
-            'descripcion',
-            'parte_equipo',        # ✅ FALTABA
-            'prioridad',
-            'fecha_programada',
-            'archivo_informe',
+            'tipo', 'maquinaria', 'titulo', 'descripcion',
+            'prioridad', 'tipo_trabajo', 'responsable_ejecucion',
+            'fecha_programada', 'fecha_inicio', 'fecha_termino', 'estado'
         ]
         widgets = {
-            'descripcion': forms.Textarea(attrs={
-                'rows': 4,
-                'placeholder': 'Descripción del trabajo'
-            }),
-            'parte_equipo': forms.TextInput(attrs={
-                'placeholder': 'Ej: Motor, sistema eléctrico, transmisión'
-            }),
-            'fecha_programada': forms.DateTimeInput(attrs={
-                'type': 'datetime-local'
-            }),
+            'fecha_programada': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'fecha_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'fecha_termino': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['responsable_ejecucion'].required = False
+
+
+        
+# =========================
+# FORM: Asignar responsable (Autorizado)
+# =========================
+class ODTAsignarResponsableForm(TailwindFormMixin, forms.ModelForm):
+    """
+    Formulario para que el usuario autorizado asigne un responsable de ejecución.
+    """
+    responsable_ejecucion = forms.ModelChoiceField(
+        queryset=User.objects.filter(is_active=True),
+        label=_('Responsable de ejecución'),
+        required=True,
+        empty_label="Seleccione un responsable"
+    )
+
+    tipo_trabajo = forms.ChoiceField(
+        label=_('Tipo de trabajo'),
+        choices=RegistroODT._meta.get_field('tipo_trabajo').choices,
+        required=True
+    )
+
+    fecha_programada = forms.DateTimeField(
+        label=_('Fecha/Hora programada'),
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        required=False
+    )
+
+    class Meta:
+        model = RegistroODT
+        fields = ['responsable_ejecucion', 'tipo_trabajo', 'fecha_programada']
+
+
+# =========================
+# FORM: Detalle de Ejecución (Responsable)
+# =========================
+class DetalleEjecucionForm(TailwindFormMixin, forms.ModelForm):
+    """
+    Formulario para que el responsable de ejecución complete los detalles.
+    """
+    class Meta:
+        model = DetalleEjecucion
+        fields = [
+            'descripcion_falla',
+            'falla_tipo',
+            'hora_inicio_trabajo',
+            'hora_fin_trabajo',
+            'tareas_realizadas',
+            'medidas_seguridad',
+            'observaciones'
+        ]
+        widgets = {
+            'hora_inicio_trabajo': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'hora_fin_trabajo': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
+
+
+# =========================
+# FORM: Repuestos
+# =========================
+class RepuestoForm(TailwindFormMixin, forms.ModelForm):
+    """
+    Formulario para agregar repuestos a una ODT.
+    """
+    class Meta:
+        model = Repuesto
+        fields = ['codigo', 'descripcion', 'cantidad_utilizada']
+
+
+# =========================
+# FORMSET: Repuestos
+# =========================
+RepuestoFormSet = forms.inlineformset_factory(
+    RegistroODT,
+    Repuesto,
+    form=RepuestoForm,
+    extra=1,
+    can_delete=True,
+    min_num=0,
+    validate_min=False
+)
+
+
+# =========================
+# FORM: Personal Necesario
+# =========================
+class PersonalNecesarioForm(TailwindFormMixin, forms.ModelForm):
+    """
+    Formulario para agregar personal necesario a una ODT.
+    """
+    class Meta:
+        model = PersonalNecesario
+        fields = ['categoria', 'trabajador', 'horas_trabajadas']
+
+
+# =========================
+# FORMSET: Personal Necesario
+# =========================
+PersonalFormSet = forms.inlineformset_factory(
+    RegistroODT,
+    PersonalNecesario,
+    form=PersonalNecesarioForm,
+    extra=1,
+    can_delete=True,
+    min_num=0,
+    validate_min=False
+)
+
+
+# =========================
+# FORM: Revisión ODT
+# =========================
+class ODTRevisionForm(TailwindFormMixin, forms.Form):
+    """
+    Formulario para aprobar o rechazar en revisión.
+    """
+    DECISION_CHOICES = [
+        ('aprobar', 'Aprobar'),
+        ('rechazar', 'Rechazar'),
+    ]
+    
+    decision = forms.ChoiceField(
+        choices=DECISION_CHOICES,
+        widget=forms.RadioSelect,
+        label=_('Decisión')
+    )
+    
+    observaciones = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label=_('Observaciones')
+    )
+
+
+# =========================
+# FORM: Aprobación Final ODT
+# =========================
+class ODTAprobacionForm(TailwindFormMixin, forms.Form):
+    """
+    Formulario para aprobación final.
+    """
+    DECISION_CHOICES = [
+        ('aprobar', 'Aprobar'),
+        ('rechazar', 'Rechazar'),
+    ]
+    
+    decision = forms.ChoiceField(
+        choices=DECISION_CHOICES,
+        widget=forms.RadioSelect,
+        label=_('Decisión')
+    )
+    
+    observaciones = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label=_('Observaciones')
+    )

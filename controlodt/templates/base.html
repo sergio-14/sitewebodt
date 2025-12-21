@@ -49,13 +49,13 @@
             </svg>
             <span class="truncate md:group-[.collapsed]:hidden">Usuarios</span>
           </a>
+
+          <!-- MENÚ ORDEN DE TRABAJO -->
           <div class="mt-1">
             <button type="button" class="w-full flex items-center gap-3 rounded-r-full px-3 py-2 hover:text-red-500 hover:bg-slate-800 md:group-[.collapsed]:justify-center md:group-[.collapsed]:gap-0" onclick="document.getElementById('propiedadesSubmenu').classList.toggle('hidden')">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-boxes" viewBox="0 0 16 16">
                 <path d="M7.752.066a.5.5 0 0 1 .496 0l3.75 2.143a.5.5 0 0 1 .252.434v3.995l3.498 2A.5.5 0 0 1 16 9.07v4.286a.5.5 0 0 1-.252.434l-3.75 2.143a.5.5 0 0 1-.496 0l-3.502-2-3.502 2.001a.5.5 0 0 1-.496 0l-3.75-2.143A.5.5 0 0 1 0 13.357V9.071a.5.5 0 0 1 .252-.434L3.75 6.638V2.643a.5.5 0 0 1 .252-.434zM4.25 7.504 1.508 9.071l2.742 1.567 2.742-1.567zM7.5 9.933l-2.75 1.571v3.134l2.75-1.571zm1 3.134 2.75 1.571v-3.134L8.5 9.933zm.508-3.996 2.742 1.567 2.742-1.567-2.742-1.567zm2.242-2.433V3.504L8.5 5.076V8.21zM7.5 8.21V5.076L4.75 3.504v3.134zM5.258 2.643 8 4.21l2.742-1.567L8 1.076zM15 9.933l-2.75 1.571v3.134L15 13.067zM3.75 14.638v-3.134L1 9.933v3.134z"/>
               </svg>
-
-
               <span class="truncate md:group-[.collapsed]:hidden">Orden de Trabajo</span>
               <svg class="ml-auto md:group-[.collapsed]:hidden" width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
@@ -63,17 +63,21 @@
             </button>
             <div id="propiedadesSubmenu" class="pl-8 mt-1 space-y-1 hidden">
               <a href="{% url 'odt_list' %}" class="text-xs flex items-center gap-2 px-3 py-2 rounded hover:text-red-500 hover:bg-slate-800">
-                <span>Lista y Registro</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-ul" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+                </svg>
+                <span>Listado de ODT</span>
               </a>
-              {% comment %} <a href="{% url 'mis_notificaciones' %}" class="text-xs flex items-center gap-2 px-3 py-2 rounded hover:text-red-500 hover:bg-slate-800">
-                <span>Registro de Inscripciones Realizadas</span>
-              </a> {% endcomment %}
-              {% comment %} <a href="{% url 'tipo_list' %}" class="text-xs flex items-center gap-2 px-3 py-2 rounded hover:text-red-500 hover:bg-slate-800">
-                <span>Registro de Alumnos</span>
-              </a> {% endcomment %}
-              
+              <a href="{% url 'odt_create' %}" class="text-xs flex items-center gap-2 px-3 py-2 rounded hover:text-red-500 hover:bg-slate-800">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                  <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                </svg>
+                <span>Nueva ODT</span>
+              </a>
             </div>
           </div>
+
           <script>
             // Cierra el submenu si se hace click fuera
             document.addEventListener("click", function (e) {
@@ -86,6 +90,8 @@
               }
             });
           </script>
+
+          <!-- MENÚ ÁREA DE EQUIPOS -->
           <div class="mt-1">
             <button type="button" class="w-full flex items-center gap-3 rounded-r-full px-3 py-2 hover:text-red-500 hover:bg-slate-800 md:group-[.collapsed]:justify-center md:group-[.collapsed]:gap-0" onclick="document.getElementById('maquinariaSubmenu').classList.toggle('hidden')">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-stack" viewBox="0 0 16 16">
@@ -98,23 +104,27 @@
               </svg>
             </button>
             <div id="maquinariaSubmenu" class="pl-8 mt-1 space-y-1 hidden">
-              <a href="{% url 'tipo_list' %}" class="text-xs flex items-center gap-2 px-3 py-2 rounded hover:text-red-500 hover:bg-slate-800">
+             <a href="{% url 'tipo_list' %}" class="text-xs flex items-center gap-2 px-3 py-2 rounded hover:text-red-500 hover:bg-slate-800">
                 <span>Lista Línea</span>
               </a>
               <a href="{% url 'maquinaria_list' %}" class="text-xs flex items-center gap-2 px-3 py-2 rounded hover:text-red-500 hover:bg-slate-800">
                 <span>Lista Equipos Registrados</span>
               </a>
-              {% comment %} <a href="" class="text-xs flex items-center gap-2 px-3 py-2 rounded hover:text-red-500 hover:bg-slate-800">
-                <span>Mantenimiento</span>
-              </a> {% endcomment %}
             </div>
           </div>
-          <a href="{% url 'reporte_odt' %}" class="mt-1 flex items-center gap-3 rounded-r-full px-3 py-2 hover:text-red-500 hover:bg-slate-800 md:group-[.collapsed]:justify-center md:group-[.collapsed]:gap-0">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bar-chart-line-fill" viewBox="0 0 16 16">
-              <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1z"/>
-            </svg>
-            <span class="truncate md:group-[.collapsed]:hidden">Ajustes</span>
-          </a>
+
+          <script>
+            // Cierra el submenu de maquinaria si se hace click fuera
+            document.addEventListener("click", function (e) {
+              const submenu = document.getElementById("maquinariaSubmenu");
+              const btn = submenu?.previousElementSibling;
+              if (submenu && !submenu.classList.contains("hidden")) {
+                if (!submenu.contains(e.target) && !btn.contains(e.target)) {
+                  submenu.classList.add("hidden");
+                }
+              }
+            });
+          </script>
         </nav>
       </aside>
 
@@ -134,13 +144,6 @@
 
             <!-- Acciones derecha -->
             <div class="flex items-center gap-3 text-white">
-              <!-- Notificaciones -->
-              <a href="{% url 'mis_notificaciones' %}" class="inline-flex h-10 w-10 items-center justify-center rounded-lg hover:text-red-500 hover:bg-slate-800">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M6 8a6 6 0 1 1 12 0v4l1.5 3H4.5L6 12V8zM9 18a3 3 0 0 0 6 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                </svg>
-              </a>
-
               <!-- MENU USUARIO -->
               <div class="relative">
                 <button id="userMenuBtn" class="inline-flex font-secondary items-center gap-2 rounded-full px-2 h-10 hover:text-red-600 hover:bg-slate-800">

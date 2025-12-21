@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="text-neutral-900">
+  <div class="mx-auto px-4 py-6">
+
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-primary">{{ title }}</h1>
+        <p class="text-neutral-500 text-sm">Edición completa de la orden de trabajo</p>
+      </div>
+      
+      <a href="{% url 'odt_detail' odt.pk %}"
+         class="h-11 px-5 rounded-xl border border-neutral-300 inline-flex items-center hover:bg-neutral-100">
+        Cancelar
+      </a>
+    </div>
+
+    <!-- Alerta de permisos especiales -->
+    <div class="rounded-xl bg-amber-50 border border-amber-200 p-4 mb-6">
+      <div class="flex items-start gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-shield-check text-amber-600 mt-0.5" viewBox="0 0 16 16">
+          <path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.346.244.652.42.893.533q.18.085.293.118a1 1 0 0 0 .101.025 1 1 0 0 0 .1-.025q.114-.034.294-.118c.24-.113.547-.29.893-.533a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56"/>
+          <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+        </svg>
+        <div>
+          <p class="text-sm font-semibold text-amber-900">Modo de edición completa</p>
+          <p class="text-xs text-amber-700">Tiene permisos para modificar todos los campos de esta ODT. Use con precaución.</p>
+        </div>
+      </div>
+    </div>
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      <!-- DATOS PRINCIPALES -->
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-6">
+        <h3 class="text-lg font-semibold mb-4">Datos Principales</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <div>
+            <label class="block text-sm font-medium mb-1">Línea de Trabajo</label>
+            {{ form_odt.tipo }}
+            {% for e in form_odt.tipo.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Equipo / Maquinaria</label>
+            {{ form_odt.maquinaria }}
+            {% for e in form_odt.maquinaria.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Título</label>
+            {{ form_odt.titulo }}
+            {% for e in form_odt.titulo.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Descripción del Trabajo</label>
+            {{ form_odt.descripcion }}
+            {% for e in form_odt.descripcion.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Prioridad</label>
+            {{ form_odt.prioridad }}
+            {% for e in form_odt.prioridad.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Tipo de Trabajo</label>
+            {{ form_odt.tipo_trabajo }}
+            {% for e in form_odt.tipo_trabajo.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Estado</label>
+            {{ form_odt.estado }}
+            {% for e in form_odt.estado.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Responsable de Ejecución</label>
+            {{ form_odt.responsable_ejecucion }}
+            {% for e in form_odt.responsable_ejecucion.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Fecha Programada</label>
+            {{ form_odt.fecha_programada }}
+            {% for e in form_odt.fecha_programada.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Fecha Inicio</label>
+            {{ form_odt.fecha_inicio }}
+            {% for e in form_odt.fecha_inicio.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Fecha Término</label>
+            {{ form_odt.fecha_termino }}
+            {% for e in form_odt.fecha_termino.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+        </div>
+      </div>
+
+      <!-- DETALLES DE EJECUCIÓN (Si existe) -->
+      {% if form_detalle %}
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-6">
+        <h3 class="text-lg font-semibold mb-4">Detalles de Ejecución</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Descripción de la Falla</label>
+            {{ form_detalle.descripcion_falla }}
+            {% for e in form_detalle.descripcion_falla.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Tipo de Falla</label>
+            {{ form_detalle.falla_tipo }}
+            {% for e in form_detalle.falla_tipo.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div></div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Hora Inicio Trabajo</label>
+            {{ form_detalle.hora_inicio_trabajo }}
+            {% for e in form_detalle.hora_inicio_trabajo.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Hora Fin Trabajo</label>
+            {{ form_detalle.hora_fin_trabajo }}
+            {% for e in form_detalle.hora_fin_trabajo.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Tareas Realizadas</label>
+            {{ form_detalle.tareas_realizadas }}
+            {% for e in form_detalle.tareas_realizadas.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Medidas de Seguridad</label>
+            {{ form_detalle.medidas_seguridad }}
+            {% for e in form_detalle.medidas_seguridad.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Observaciones</label>
+            {{ form_detalle.observaciones }}
+            {% for e in form_detalle.observaciones.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- REPUESTOS -->
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-6">
+        <h3 class="text-lg font-semibold mb-4">Repuestos Utilizados</h3>
+        
+        {{ formset_repuestos.management_form }}
+        
+        <div id="repuestos-container" class="space-y-4">
+          {% for form in formset_repuestos %}
+          <div class="formset-item bg-white rounded-xl p-4 border border-neutral-200">
+            {{ form.id }}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              <div>
+                <label class="block text-sm font-medium mb-1">Código</label>
+                {{ form.codigo }}
+                {% for e in form.codigo.errors %}
+                <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-1">Descripción</label>
+                {{ form.descripcion }}
+                {% for e in form.descripcion.errors %}
+                <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-1">Cantidad</label>
+                {{ form.cantidad_utilizada }}
+                {% for e in form.cantidad_utilizada.errors %}
+                <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+              </div>
+
+            </div>
+
+            {% if form.instance.pk %}
+            <div class="mt-2">
+              {{ form.DELETE }}
+              <label class="text-sm text-red-600">Eliminar</label>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- PERSONAL NECESARIO -->
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-6">
+        <h3 class="text-lg font-semibold mb-4">Personal Necesario</h3>
+        
+        {{ formset_personal.management_form }}
+        
+        <div id="personal-container" class="space-y-4">
+          {% for form in formset_personal %}
+          <div class="formset-item bg-white rounded-xl p-4 border border-neutral-200">
+            {{ form.id }}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              <div>
+                <label class="block text-sm font-medium mb-1">Categoría</label>
+                {{ form.categoria }}
+                {% for e in form.categoria.errors %}
+                <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-1">Trabajador</label>
+                {{ form.trabajador }}
+                {% for e in form.trabajador.errors %}
+                <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-1">Horas Trabajadas</label>
+                {{ form.horas_trabajadas }}
+                {% for e in form.horas_trabajadas.errors %}
+                <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+                {% endfor %}
+              </div>
+
+            </div>
+
+            {% if form.instance.pk %}
+            <div class="mt-2">
+              {{ form.DELETE }}
+              <label class="text-sm text-red-600">Eliminar</label>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3">
+        <a href="{% url 'odt_detail' odt.pk %}"
+           class="h-11 px-5 rounded-xl border border-neutral-300 inline-flex items-center hover:bg-neutral-100">
+          Cancelar
+        </a>
+
+        <button type="submit"
+                class="h-11 px-6 rounded-xl bg-amber-500 text-white font-semibold hover:bg-amber-600">
+          Guardar Cambios
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</section>
+{% endblock %}

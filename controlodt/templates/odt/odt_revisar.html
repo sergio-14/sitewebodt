@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="text-neutral-900">
+  <div class="mx-auto px-4 py-6">
+
+    <h1 class="text-2xl md:text-3xl font-primary mb-2">{{ title }}</h1>
+    <p class="text-neutral-500 text-sm mb-6">Revise la ejecución de la ODT</p>
+
+    <!-- Info de la ODT -->
+    <div class="rounded-2xl bg-orange-50 border border-orange-200 p-4 mb-6">
+      <p class="text-sm font-semibold text-orange-900">ODT: {{ odt.titulo }}</p>
+      <p class="text-xs text-orange-700">Equipo: {{ odt.maquinaria.nombre }} ({{ odt.maquinaria.codigo }})</p>
+      <p class="text-xs text-orange-700">Ejecutado por: {{ odt.responsable_ejecucion.get_full_name }}</p>
+    </div>
+
+    <!-- Resumen de Detalles -->
+    {% if odt.detalle_ejecucion %}
+    <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-5 mb-6">
+      <h3 class="text-lg font-semibold mb-4">Resumen de Ejecución</h3>
+      
+      {% with detalle=odt.detalle_ejecucion %}
+      <div class="space-y-3 text-sm">
+        <div>
+          <p class="text-xs text-neutral-500">Tipo de Falla</p>
+          <p class="font-semibold">{{ detalle.get_falla_tipo_display }}</p>
+        </div>
+
+        {% if detalle.descripcion_falla %}
+        <div>
+          <p class="text-xs text-neutral-500">Descripción de la Falla</p>
+          <p class="bg-white p-3 rounded-lg border border-neutral-200">{{ detalle.descripcion_falla }}</p>
+        </div>
+        {% endif %}
+
+        {% if detalle.tareas_realizadas %}
+        <div>
+          <p class="text-xs text-neutral-500">Tareas Realizadas</p>
+          <p class="bg-white p-3 rounded-lg border border-neutral-200">{{ detalle.tareas_realizadas }}</p>
+        </div>
+        {% endif %}
+      </div>
+      {% endwith %}
+    </div>
+    {% endif %}
+
+    <!-- Formulario de Revisión -->
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-5">
+        <h3 class="text-lg font-semibold mb-4">Decisión de Revisión</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-2">Decisión</label>
+            <div class="space-y-2">
+              {% for choice in form.decision %}
+              <div class="flex items-center">
+                {{ choice.tag }}
+                <label for="{{ choice.id_for_label }}" class="ml-2 text-sm">
+                  {{ choice.choice_label }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+            {% for e in form.decision.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Observaciones</label>
+            {{ form.observaciones }}
+            <p class="text-xs text-neutral-500 mt-1">Opcional. Puede agregar comentarios sobre la revisión.</p>
+            {% for e in form.observaciones.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ e }}</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3">
+        <a href="{% url 'odt_detail' odt.pk %}"
+           class="h-11 px-5 rounded-xl border border-neutral-300 inline-flex items-center hover:bg-neutral-100">
+          Cancelar
+        </a>
+
+        <button type="submit"
+                class="h-11 px-6 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">
+          Confirmar Revisión
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</section>
+{% endblock %}

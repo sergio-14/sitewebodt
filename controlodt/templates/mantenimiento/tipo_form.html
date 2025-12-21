@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="text-neutral-900">
+
+<div class="mx-auto px-4 py-6">
+  <h1 class="text-2xl font-primary mb-2">{{ title }}</h1>
+  <p class="text-neutral-500 text-sm mb-6">Complete los datos</p>
+
+  <form method="post" class="space-y-5">
+    {% csrf_token %}
+
+    <div class="bg-neutral-100 rounded-2xl border p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="text-sm font-medium">Nombre</label>
+        {{ form.nombre }}
+        {{ form.nombre.errors }}
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Activo</label>
+        {{ form.activo }}
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <a href="{% url 'tipo_list' %}" class="h-11 px-5 border rounded-xl">Cancelar</a>
+      <button class="h-11 px-6 rounded-xl bg-neutral-900 text-white">Guardar</button>
+    </div>
+  </form>
+</div>
+
+</section>
+{% endblock %}

@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="text-neutral-900">
+  <div class="mx-auto px-4 py-6">
+
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-primary">{{ title }}</h1>
+        <p class="text-neutral-500 text-sm">Detalles de la orden de trabajo</p>
+      </div>
+      
+      <a href="{% url 'odt_list' %}"
+         class="h-11 px-5 rounded-xl border border-neutral-300 inline-flex items-center hover:bg-neutral-100">
+        Volver
+      </a>
+    </div>
+
+    <!-- ESTADO Y ACCIONES -->
+    <div class="rounded-2xl bg-linear-to-r from-slate-900 to-slate-700 text-white p-6 mb-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm opacity-80">Estado actual</p>
+          <h2 class="text-2xl font-bold">{{ odt.get_estado_display }}</h2>
+        </div>
+        
+        <div class="flex gap-3 flex-wrap">
+          <!-- Botón de edición general para supervisores -->
+          {% if puede_editar %}
+            <a href="{% url 'odt_editar_general' odt.pk %}"
+               class="h-11 px-5 py-2 rounded-xl bg-amber-500 text-white font-semibold hover:bg-amber-600 inline-flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+              </svg>
+              Editar ODT
+            </a>
+          {% endif %}
+
+          {% if odt.estado == 'BORRADOR' and odt.creado_por == request.user %}
+            <a href="{% url 'odt_enviar_solicitud' odt.pk %}"
+               class="h-11 px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700">
+              Enviar a Solicitud
+            </a>
+          {% endif %}
+
+          {% if odt.estado == 'SOLICITUD' %}
+            <a href="{% url 'odt_asignar' odt.pk %}"
+               class="h-11 px-5 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700">
+              Asignar Responsable
+            </a>
+          {% endif %}
+
+          {% if odt.estado == 'ASIGNADA' and odt.responsable_ejecucion == request.user %}
+            <a href="{% url 'odt_iniciar' odt.pk %}"
+               class="h-11 px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700">
+              Iniciar Ejecución
+            </a>
+          {% endif %}
+
+          {% if odt.estado == 'EN_EJECUCION' and odt.responsable_ejecucion == request.user %}
+            <a href="{% url 'odt_ejecutar' odt.pk %}"
+               class="h-11 px-5 py-2 rounded-xl bg-yellow-600 text-white font-semibold hover:bg-yellow-700">
+              Completar Detalles
+            </a>
+            <a href="{% url 'odt_finalizar' odt.pk %}"
+               class="h-11 px-5 py-2 rounded-xl bg-orange-600 text-white font-semibold hover:bg-orange-700">
+              Finalizar y Enviar a Revisión
+            </a>
+          {% endif %}
+
+          {% if odt.estado == 'RECHAZADA' and odt.responsable_ejecucion == request.user %}
+            <a href="{% url 'odt_ejecutar' odt.pk %}"
+               class="h-11 px-5 py-2 rounded-xl bg-yellow-600 text-white font-semibold hover:bg-yellow-700">
+              Corregir y Reenviar
+            </a>
+          {% endif %}
+
+          {% if odt.estado == 'REVISION' %}
+            <a href="{% url 'odt_revisar' odt.pk %}"
+               class="h-11 px-5 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">
+              Revisar ODT
+            </a>
+          {% endif %}
+
+          {% if odt.estado == 'APROBADA' %}
+            <a href="{% url 'odt_aprobar_final' odt.pk %}"
+               class="h-11 px-5 py-2 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+              Aprobación Final
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- INFORMACIÓN GENERAL -->
+    <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-6 mb-6">
+      <h3 class="text-lg font-semibold mb-4">Información General</h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">N° ODT</p>
+          <p class="font-semibold">#{{ odt.n_odt|default:odt.pk }}</p>
+        </div>
+
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Correlativo</p>
+          <p class="font-semibold">{{ odt.correlativo }}</p>
+        </div>
+
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Prioridad</p>
+          <p class="font-semibold">{{ odt.get_prioridad_display }}</p>
+        </div>
+
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Línea de Trabajo</p>
+          <p class="font-semibold">{{ odt.tipo.nombre }}</p>
+        </div>
+
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Equipo / Maquinaria</p>
+          <p class="font-semibold">{{ odt.maquinaria.nombre }}</p>
+        </div>
+
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Código Equipo</p>
+          <p class="font-semibold">{{ odt.maquinaria.codigo }}</p>
+        </div>
+
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Tipo de Trabajo</p>
+          <p class="font-semibold">{{ odt.get_tipo_trabajo_display|default:"—" }}</p>
+        </div>
+
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Creado por</p>
+          <p class="font-semibold">{{ odt.creado_por.get_full_name }}</p>
+        </div>
+
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Fecha creación</p>
+          <p class="font-semibold">{{ odt.creado_en|date:"d/m/Y H:i" }}</p>
+        </div>
+
+        {% if odt.autorizado_por %}
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Autorizado por</p>
+          <p class="font-semibold">{{ odt.autorizado_por.get_full_name }}</p>
+        </div>
+        {% endif %}
+
+        {% if odt.responsable_ejecucion %}
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Responsable Ejecución</p>
+          <p class="font-semibold">{{ odt.responsable_ejecucion.get_full_name }}</p>
+        </div>
+        {% endif %}
+
+        {% if odt.fecha_programada %}
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Fecha Programada</p>
+          <p class="font-semibold">{{ odt.fecha_programada|date:"d/m/Y H:i" }}</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="mt-4">
+        <p class="text-xs text-neutral-500 mb-1">Título</p>
+        <p class="font-semibold">{{ odt.titulo }}</p>
+      </div>
+
+      <div class="mt-4">
+        <p class="text-xs text-neutral-500 mb-1">Descripción</p>
+        <p class="text-sm">{{ odt.descripcion }}</p>
+      </div>
+    </div>
+
+    <!-- DETALLES DE EJECUCIÓN -->
+    {% if odt.detalle_ejecucion %}
+    <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-6 mb-6">
+      <h3 class="text-lg font-semibold mb-4">Detalles de Ejecución</h3>
+      
+      {% with detalle=odt.detalle_ejecucion %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Tipo de Falla</p>
+          <p class="font-semibold">{{ detalle.get_falla_tipo_display }}</p>
+        </div>
+
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Ejecutado por</p>
+          <p class="font-semibold">{{ detalle.ejecutado_por.get_full_name|default:"—" }}</p>
+        </div>
+
+        {% if detalle.hora_inicio_trabajo %}
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Inicio Trabajo</p>
+          <p class="font-semibold">{{ detalle.hora_inicio_trabajo|date:"d/m/Y H:i" }}</p>
+        </div>
+        {% endif %}
+
+        {% if detalle.hora_fin_trabajo %}
+        <div>
+          <p class="text-xs text-neutral-500 mb-1">Fin Trabajo</p>
+          <p class="font-semibold">{{ detalle.hora_fin_trabajo|date:"d/m/Y H:i" }}</p>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if detalle.descripcion_falla %}
+      <div class="mt-4">
+        <p class="text-xs text-neutral-500 mb-1">Descripción de la Falla</p>
+        <p class="text-sm bg-white rounded-lg p-3 border border-neutral-200">{{ detalle.descripcion_falla }}</p>
+      </div>
+      {% endif %}
+
+      {% if detalle.tareas_realizadas %}
+      <div class="mt-4">
+        <p class="text-xs text-neutral-500 mb-1">Tareas Realizadas</p>
+        <p class="text-sm bg-white rounded-lg p-3 border border-neutral-200">{{ detalle.tareas_realizadas }}</p>
+      </div>
+      {% endif %}
+
+      {% if detalle.medidas_seguridad %}
+      <div class="mt-4">
+        <p class="text-xs text-neutral-500 mb-1">Medidas de Seguridad</p>
+        <p class="text-sm bg-white rounded-lg p-3 border border-neutral-200">{{ detalle.medidas_seguridad }}</p>
+      </div>
+      {% endif %}
+
+      {% if detalle.observaciones %}
+      <div class="mt-4">
+        <p class="text-xs text-neutral-500 mb-1">Observaciones</p>
+        <p class="text-sm bg-white rounded-lg p-3 border border-neutral-200">{{ detalle.observaciones }}</p>
+      </div>
+      {% endif %}
+      {% endwith %}
+    </div>
+    {% endif %}
+
+    <!-- REPUESTOS -->
+    {% if odt.repuestos.exists %}
+    <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-6 mb-6">
+      <h3 class="text-lg font-semibold mb-4">Repuestos Utilizados</h3>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded-lg overflow-hidden">
+          <thead class="bg-neutral-200">
+            <tr class="text-left text-sm">
+              <th class="px-4 py-2">Código</th>
+              <th class="px-4 py-2">Descripción</th>
+              <th class="px-4 py-2">Cantidad</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-100">
+            {% for rep in odt.repuestos.all %}
+            <tr class="text-sm">
+              <td class="px-4 py-2">{{ rep.codigo|default:"—" }}</td>
+              <td class="px-4 py-2">{{ rep.descripcion }}</td>
+              <td class="px-4 py-2">{{ rep.cantidad_utilizada }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- PERSONAL -->
+    {% if odt.personal_necesario.exists %}
+    <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-6">
+      <h3 class="text-lg font-semibold mb-4">Personal Necesario</h3>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded-lg overflow-hidden">
+          <thead class="bg-neutral-200">
+            <tr class="text-left text-sm">
+              <th class="px-4 py-2">Categoría</th>
+              <th class="px-4 py-2">Trabajador</th>
+              <th class="px-4 py-2">Horas Trabajadas</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-100">
+            {% for per in odt.personal_necesario.all %}
+            <tr class="text-sm">
+              <td class="px-4 py-2">{{ per.categoria|default:"—" }}</td>
+              <td class="px-4 py-2">{{ per.trabajador|default:"—" }}</td>
+              <td class="px-4 py-2">{{ per.horas_trabajadas }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
