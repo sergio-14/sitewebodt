@@ -84,6 +84,8 @@ urlpatterns = [
 
     path('reportes/odt/', views.reporte_odt_view, name='reporte_odt'),
     path('reportes/odt/pdf/', views.reporte_odt_pdf, name='reporte_odt_pdf'),
+    path('reporte-odt-excel/', views.reporte_odt_excel, name='reporte_odt_excel'),
+
     
 ]
 if settings.DEBUG:

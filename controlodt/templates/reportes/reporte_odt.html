@@ -20,6 +20,10 @@
           class="px-4 py-2 text-sm font-medium text-white bg-amber-500 rounded-lg hover:opacity-90 transition shadow-sm">
           Exportar PDF
         </a>
+        <a href="{% url 'reporte_odt_excel' %}?{{ request.GET.urlencode }}"
+          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded">
+          Exportar Excel
+        </a>
 
       </div>
     </div>
@@ -148,7 +152,7 @@
               <tr class="hover:bg-neutral-100 text-xs">
                 <td class="px-4 py-2">{% if odt.fecha_programada %}{{ odt.fecha_programada|date:"d/m/Y" }}{% else %}-{% endif %}</td>
                 <td class="px-4 py-2 whitespace-nowrap font-medium">{{ odt.n_odt|stringformat:"03d" }}</td>
-                <td class="px-4 py-2">{{ odt.maquinaria.tipo }}</td>
+                <td class="px-4 py-2">{{ odt.tipo.nombre }}</td>
                 <td class="px-4 py-2">{{ odt.maquinaria.nombre }}</td>
                 <td class="px-4 py-2">{{ odt.get_estado_display }}</td>
                 <td class="px-4 py-2 whitespace-nowrap">{{ odt.creado_por.get_full_name }}</td>
@@ -348,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
   new Chart(document.getElementById('tipoChart').getContext('2d'), {
     type: 'doughnut',
     data: {
-      labels: [{% for item in stats_tipo %}'{{ item.maquinaria__tipo__nombre }}',{% endfor %}],
+      labels: [{% for item in stats_tipo %}'{{ item.tipo__nombre }}',{% endfor %}],
       datasets: [{
         data: [{% for item in stats_tipo %}{{ item.porcentaje|stringformat:".1f" }},{% endfor %}],
         backgroundColor: ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6']

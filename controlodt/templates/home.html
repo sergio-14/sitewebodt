@@ -29,7 +29,7 @@
     <div id="shapes-container" class="absolute inset-0"></div>
 
     <!-- Fondo -->
-    <div class="absolute inset-x-0 bottom-0 -z-10 h-[300px] md:h-[450px]">
+    <div class="absolute inset-x-0 bottom-0 -z-10 h-[300px] md:h-[500px]">
       <img src="{% static 'src/img/bgfondo.png' %}" class="w-full h-full md:h-auto  bottom-0 object-cover" />
     </div>
 
@@ -255,7 +255,7 @@ function createShape() {
   
   // La duración debe ser proporcional a la distancia para que no se vean frenéticas las que mueren cerca
   const duration = random(3, 6); 
-  const targetOpacity = random(0.3, 0.7); // Opacidad aleatoria para profundidad
+  const targetOpacity = random(0.4, 0.8); // Opacidad aleatoria para profundidad
 
   // Transiciones: notarás que añadí un retraso al opacity para el desvanecimiento final
   img.style.transition = `bottom ${duration}s linear, 

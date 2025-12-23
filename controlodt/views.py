@@ -483,15 +483,15 @@ def puede_editar_odt(user, odt):
 def odt_list(request):
     user = request.user
 
-    # Si es superuser → todo
-    if user.is_superuser:
-        odts = RegistroODT.objects.all()
+    # ================= FILTROS =================
+    tipo = request.GET.get('tipo')
+    maquinaria = request.GET.get('maquinaria')
+   
+    prioridad = request.GET.get('prioridad')
 
-    # Si tiene permiso de aprobar o autorizar → todo
-    elif user.has_perm('controlodt.aprobar_odt') or user.has_perm('controlodt.revisar_odt'):
+    # ===== Base queryset según permisos =====
+    if user.is_superuser or user.has_perm('controlodt.aprobar_odt') or user.has_perm('controlodt.revisar_odt'):
         odts = RegistroODT.objects.all()
-
-    # Si no → solo lo relacionado con él
     else:
         odts = RegistroODT.objects.filter(
             Q(creado_por=user) |
@@ -500,10 +500,37 @@ def odt_list(request):
             Q(revisado_por=user)
         ).distinct()
 
+    # ===== Aplicar filtros =====
+    if tipo:
+        odts = odts.filter(tipo_id=tipo)
+
+    if maquinaria:
+        odts = odts.filter(maquinaria_id=maquinaria)
+
+  
+
+    if prioridad:
+        odts = odts.filter(prioridad=prioridad)
+
+    odts = odts.select_related('tipo', 'maquinaria', 'creado_por', 'responsable_ejecucion').order_by('-creado_en')
+
+    # ===== PAGINACIÓN =====
+    paginator = Paginator(odts, 10)   # 🔥 10 por página (cámbialo si quieres)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
         'title': 'Órdenes de Trabajo',
-        'odts': odts.select_related('tipo', 'maquinaria', 'creado_por', 'responsable_ejecucion')
+        'page_obj': page_obj,
+        'odts': page_obj.object_list,
+
+        # Enviamos data para combos
+        'tipos': TipoMaquinaria.objects.all(),
+        'maquinarias': Maquinaria.objects.all(),
+        'estados': RegistroODT.EstadoODT.choices,
+        'prioridades': RegistroODT.prioridad_choices,
     }
+
     return render(request, 'odt/odt_list.html', context)
 
 
@@ -981,7 +1008,7 @@ def odt_detalle_pdf(request, pk):
     }
 
     return render_to_pdf(
-        'controlodt/odt_detalle_pdf.html',
+        'odt/odt_detalle_pdf.html',
         context
     )
 
@@ -1018,7 +1045,7 @@ def reporte_odt_view(request):
     if maquinaria_id:
         queryset = queryset.filter(maquinaria_id=maquinaria_id)
     if tipo_id:
-        queryset = queryset.filter(maquinaria__tipo_id=tipo_id)
+        queryset = queryset.filter(tipo_id=tipo_id)
     if prioridad:
         queryset = queryset.filter(prioridad=prioridad)
     if estado:
@@ -1046,8 +1073,8 @@ def reporte_odt_view(request):
 
     # --- Totales ---
     total_registros = queryset.count()
-    total_aprobadas = queryset.filter(estado=RegistroODT.EstadoODT.APROBADA).count()
-    total_revision = queryset.filter(estado=RegistroODT.EstadoODT.REVISION).count()
+    total_aprobadas = queryset.filter(estado=RegistroODT.EstadoODT.CERRADA).count()
+    total_revision = queryset.filter(estado=RegistroODT.EstadoODT.EN_EJECUCION).count()
     total_solicitud = queryset.filter(estado=RegistroODT.EstadoODT.SOLICITUD).count()
 
     # --- 3. Paginación ---
@@ -1083,8 +1110,8 @@ def reporte_odt_view(request):
         item['porcentaje'] = (item['total'] / total_registros * 100) if total_registros > 0 else 0
 
     # Distribución por tipo
-    stats_tipo = queryset.values('maquinaria__tipo__nombre').annotate(
-        total=Count('maquinaria__tipo__nombre')
+    stats_tipo = queryset.values('tipo__nombre').annotate(
+        total=Count('tipo__nombre')
     ).order_by('-total')
     
     for item in stats_tipo:
@@ -1180,7 +1207,7 @@ def reporte_odt_pdf(request):
         queryset = queryset.filter(maquinaria_id=request.GET['maquinaria'])
 
     if request.GET.get('tipo_maquinaria'):
-        queryset = queryset.filter(maquinaria__tipo_id=request.GET['tipo_maquinaria'])
+        queryset = queryset.filter(tipomaquinaria__tipo_id=request.GET['tipo_maquinaria'])
 
     if request.GET.get('prioridad'):
         queryset = queryset.filter(prioridad=request.GET['prioridad'])
@@ -1214,8 +1241,8 @@ def reporte_odt_pdf(request):
 
     # --- totales ---
     total_registros = queryset.count()
-    total_aprobadas = queryset.filter(estado=RegistroODT.EstadoODT.APROBADA).count()
-    total_revision = queryset.filter(estado=RegistroODT.EstadoODT.REVISION).count()
+    total_aprobadas = queryset.filter(estado=RegistroODT.EstadoODT.CERRADA).count()
+    total_revision = queryset.filter(estado=RegistroODT.EstadoODT.EN_EJECUCION).count()
     total_solicitud = queryset.filter(estado=RegistroODT.EstadoODT.SOLICITUD).count()
 
     # --- Estadísticas para gráficos ---
@@ -1234,7 +1261,7 @@ def reporte_odt_pdf(request):
     ).order_by('-total')[:5]
 
     # Líneas de trabajo (tipos)
-    stats_tipo = queryset.values('maquinaria__tipo__nombre').annotate(
+    stats_tipo = queryset.values('tipo__nombre').annotate(
         total=Count('id')
     ).order_by('-total')
     
@@ -1260,7 +1287,7 @@ def reporte_odt_pdf(request):
 
         # Gráfico de tipos
         if stats_tipo:
-            labels_tipo = [item['maquinaria__tipo__nombre'] for item in stats_tipo]
+            labels_tipo = [item['tipo__nombre'] for item in stats_tipo]
             data_tipo = [item['total'] for item in stats_tipo]
             grafico_tipo = generar_grafico_base64(labels_tipo, data_tipo, 'Líneas de Trabajo')
 
@@ -1316,4 +1343,114 @@ def reporte_odt_pdf(request):
         dest=response,
         link_callback=PDFStaticResolver(request)
     )
+    return response
+
+
+import openpyxl
+from openpyxl.styles import Font, Alignment
+from django.http import HttpResponse
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
+
+
+def reporte_odt_excel(request):
+    queryset = RegistroODT.objects.all()
+
+    # --- filtros ---
+    if request.GET.get('n_odt'):
+        queryset = queryset.filter(n_odt=request.GET['n_odt'])
+
+    if request.GET.get('maquinaria'):
+        queryset = queryset.filter(maquinaria_id=request.GET['maquinaria'])
+
+    if request.GET.get('tipo_maquinaria'):
+        queryset = queryset.filter(tipo_id=request.GET['tipo_maquinaria'])
+
+    if request.GET.get('prioridad'):
+        queryset = queryset.filter(prioridad=request.GET['prioridad'])
+
+    if request.GET.get('estado'):
+        queryset = queryset.filter(estado=request.GET['estado'])
+
+    if request.GET.get('creado_por'):
+        txt = request.GET['creado_por']
+        queryset = queryset.filter(
+            Q(creado_por__nombre__icontains=txt) |
+            Q(creado_por__apellido__icontains=txt) |
+            Q(creado_por__apellidoM__icontains=txt)
+        )
+
+    if request.GET.get('revisado_por'):
+        txt = request.GET['revisado_por']
+        queryset = queryset.filter(
+            Q(revisado_por__nombre__icontains=txt) |
+            Q(revisado_por__apellido__icontains=txt) |
+            Q(revisado_por__apellidoM__icontains=txt)
+        )
+
+    if request.GET.get('aprobado_por'):
+        txt = request.GET['aprobado_por']
+        queryset = queryset.filter(
+            Q(aprobado_por__nombre__icontains=txt) |
+            Q(aprobado_por__apellido__icontains=txt) |
+            Q(aprobado_por__apellidoM__icontains=txt)
+        )
+
+    # --- Crear Excel ---
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Reporte ODTs"
+
+    # =======================
+    # ENCABEZADOS
+    # =======================
+    headers = [
+        "N° ODT",
+        "Fecha",
+        "Falla Reportada",
+        "Línea",
+        "Prioridad",
+        "Equipo / Parte",
+        "Solicitado Por",
+        "Entregado A",
+        "Estado",
+    ]
+
+    ws.append(headers)
+
+    # Estilos encabezados
+    for col in range(1, len(headers) + 1):
+        cell = ws.cell(row=1, column=col)
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal="center")
+
+    # =======================
+    # CONTENIDO
+    # =======================
+    for odt in queryset:
+        ws.append([
+            f"{odt.n_odt:03d}",
+            odt.creado_en.strftime("%d/%m/%Y") if odt.creado_en else "",
+            odt.titulo,
+            getattr(odt.tipo, "nombre", ""),
+            odt.get_prioridad_display() if hasattr(odt, "get_prioridad_display") else odt.prioridad,
+            getattr(odt.maquinaria, "nombre", ""),
+            odt.creado_por.get_full_name() if odt.creado_por else "",
+            odt.responsable_ejecucion.get_full_name() if getattr(odt, "responsable_ejecucion", None) else "",
+            odt.get_estado_display() if hasattr(odt, "get_estado_display") else odt.estado,
+        ])
+
+    # Ajustar ancho
+    for column in ws.columns:
+        length = max(len(str(cell.value)) for cell in column) + 2
+        ws.column_dimensions[column[0].column_letter].width = length
+
+    # --- Respuesta ---
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="reporte_odt.xlsx"'
+    wb.save(response)
+
     return response

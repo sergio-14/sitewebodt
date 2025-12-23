@@ -15,22 +15,22 @@
       </a>
   </div>
 
-  <div class="overflow-x-auto">
-    <table class="w-full bg-neutral-100 border border-neutral-200 rounded-xl">
+  <div class="mt-2 overflow-x-auto">
+    <table class="min-w-full border border-neutral-200 bg-neutral-100 rounded-md overflow-hidden">
       <thead class="bg-slate-900 text-neutral-100">
         <tr>
           <th class="px-4 py-3 text-left">Nombre</th>
-          <th class="px-4 py-3 text-left">Estado</th>
-          <th class="px-4 py-3 text-center">Acciones</th>
+          <th class="px-4 py-3 text-right">Estado</th>
+          <th class="px-4 py-3 text-right">Acciones</th>
         </tr>
       </thead>
 
-      <tbody>
+      <tbody class="divide-y divide-neutral-50">
         {% for t in tipos %}
         <tr class="border-t hover:bg-neutral-200 text-sm">
-          <td class="px-4 py-3">{{ t.nombre }}</td>
+          <td class="px-4 py-3 ">{{ t.nombre }}</td>
 
-          <td class="px-4 py-3">
+          <td class="px-4 py-3 ">
             {% if t.activo %}
             <span class="px-2 py-1 text-xs rounded-full bg-green-200 text-green-700">Activo</span>
             {% else %}
@@ -38,12 +38,12 @@
             {% endif %}
           </td>
 
-          <td class="px-4 py-3 text-center flex gap-2 justify-center">
+          <td class="px-4 py-3 text-center flex gap-2 justify-end">
             <a href="{% url 'tipo_edit' t.pk %}"
                class="px-3 py-2 rounded-lg bg-amber-400 text-white">Editar</a>
 
             <a href="{% url 'tipo_toggle' t.pk %}"
-               class="px-3 py-2 rounded-lg bg-slate-900 text-white">
+               class="px-3 py-2 rounded-lg bg-red-500 text-white">
                {% if t.activo %} Deshabilitar {% else %} Activar {% endif %}
             </a>
           </td>

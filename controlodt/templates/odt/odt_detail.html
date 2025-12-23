@@ -1,21 +1,89 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
 <section class="text-neutral-900">
-  <div class="mx-auto px-4 py-6">
+  <div class="mx-auto px-4 py-6 max-w-4xl">
 
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-2xl md:text-3xl font-primary">{{ title }}</h1>
-        <p class="text-neutral-500 text-sm">Detalles de la orden de trabajo</p>
+    <!-- Estilos específicos para la vista detalle (mantienen look de reporte/imprimible) -->
+    <style>
+      /* Reset pequeño local para evitar conflictos */
+      .report * { box-sizing: border-box; }
+
+      .report-body { font-family: Arial, sans-serif; font-size: 10pt; color: #1f2937; line-height: 1.4; }
+      .report-container { padding: 12px 14px; }
+
+      .header-table { width: 100%; border: none; margin-bottom: 6px; }
+      .logo-img { width: 90pt; height: auto; }
+      .company-title { font-size: 16pt; font-weight: bold; color: #3d4f2a; }
+      .company-subtitle { font-size: 9pt; color: #374151; margin-top: 2pt; }
+      .doc-title { font-size: 11pt; font-weight: bold; color: #111827; margin-top: 4pt; }
+      .divider-double { height: 4pt; margin-top: 6pt; }
+      .divider-double div { border-bottom: 1pt solid #111827; margin-bottom: 1pt; }
+
+      .meta-info { font-size: 9pt; color: #374151; text-align: right; padding: 8pt 0; }
+
+      .section { margin: 12px 0; }
+      .section-header { background-color: #3d4f2a; color: white; padding:8px 12px; border-radius:4px; }
+
+      .info-card { background:#f9fafb; border:1px solid #e5e7eb; padding:8px; margin-bottom:8px; border-radius:6px; }
+      .data-grid td { padding:4px 0; vertical-align: top; border:none; font-size:10pt; }
+      .data-label { color:#6b7280; font-weight:600; font-size:9pt; display:block; }
+      .data-value { color:#111827; font-weight:600; margin-top:4px; display:block; }
+
+      .styled-table { width:100%; border-collapse:collapse; font-size:9pt; margin:10px 0; }
+      .styled-table th { background:#1f2937; color:white; padding:6px 6px; text-align:left; font-weight:bold; }
+      .styled-table td { padding:6px 6px; border:1px solid #e5e7eb; }
+
+      .badge { display:inline-block; padding:4px 10px; border-radius:12px; font-size:8pt; color:white; font-weight:bold; text-transform:uppercase; }
+      .badge-green { background:#1f2937;} .badge-red { background:#dc2626; } .badge-amber { background:#d97706; } .badge-gray { background:#6b7280; }
+
+      .financial-summary {  padding:2px; margin:10px 0; }
+      .financial-row { display:table; width:100%; margin:4px 0; }
+      .financial-row  div { display:table-cell; padding:4px 8px; }
+      .financial-label { width:60%; font-weight:bold; color:#374151; }
+      .financial-value { width:40%; text-align:right; font-weight:bold; color:#111827; font-size:11pt; }
+
+      .record-block { page-break-inside: avoid; }
+      .page-break-before { page-break-before: always; }
+
+      /* firmas responsive */
+      .firma-grid { display:grid; grid-template-columns: 1fr; gap:18px; text-align:center; }
+      @media(min-width:768px){ .firma-grid { grid-template-columns: repeat(3, 1fr); } }
+      .firma-img { height:50pt; width:auto; object-fit:contain; display:block; margin:0 auto 6px; }
+      .no-firma { color:#6b7280; font-size:9pt; }
+    </style>
+
+    <div class="report report-body report-container bg-white rounded-lg shadow-sm">
+
+      <!-- HEADER -->
+      <table class="header-table">
+        <tr>
+          <td style="width:90pt; vertical-align: middle;">
+            <img src="{% static 'src/img/logo.png' %}" alt="Logo" class="logo-img" />
+          </td>
+
+          <td style="vertical-align: middle; text-align: center;">
+            <div class="company-title">EMBOTELLADORA NUDELPA LIMITADA</div>
+            <div class="company-subtitle">Trinidad - Beni - Bolivia</div>
+            <div class="doc-title">Orden de Trabajo</div>
+            <div class="divider-double"><div></div><div></div></div>
+          </td>
+
+          <td style="width:90pt; vertical-align: middle; text-align:right;">
+            <img src="{% static 'src/img/logoc.jpg' %}" alt="Logo" class="logo-img" />
+          </td>
+        </tr>
+      </table>
+
+      <div class="meta-info">
+        <strong>Santísima Trinidad,</strong>
+        {% if odt.creado_en %} {{ odt.creado_en|date:"j" }} de {{ odt.creado_en|date:"F" }} de {{ odt.creado_en|date:"Y" }}
+        {% else %} {% now "j" %} de {% now "F" %} de {% now "Y" %} {% endif %}
+        - <strong>Nudelpa/{{ odt.correlativo|stringformat:"04d" }}</strong>
       </div>
-      
-      <a href="{% url 'odt_list' %}"
-         class="h-11 px-5 rounded-xl border border-neutral-300 inline-flex items-center hover:bg-neutral-100">
-        Volver
-      </a>
-    </div>
 
-    <!-- ESTADO Y ACCIONES -->
+      <!-- ESTADO Y ACCIONES -->
     <div class="rounded-2xl bg-linear-to-r from-slate-900 to-slate-700 text-white p-6 mb-6">
       <div class="flex items-center justify-between">
         <div>
@@ -24,6 +92,7 @@
         </div>
         
         <div class="flex gap-3 flex-wrap">
+          <a href="{% url 'odt_detalle_pdf' odt.pk %}" target="_black"  class="bg-teal-500 px-4 py-3 rounded-xl ">Exportar PDF</a>
           <!-- Botón de edición general para supervisores -->
           {% if puede_editar %}
             <a href="{% url 'odt_editar_general' odt.pk %}"
@@ -91,209 +160,327 @@
         </div>
       </div>
     </div>
+      <!-- INFORMACIÓN -->
+      <div class="section record-block">
+        <div style="font-weight:bold; font-size:12pt; margin-bottom:6px;">Información</div>
 
-    <!-- INFORMACIÓN GENERAL -->
-    <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-6 mb-6">
-      <h3 class="text-lg font-semibold mb-4">Información General</h3>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">N° ODT</p>
-          <p class="font-semibold">#{{ odt.n_odt|default:odt.pk }}</p>
-        </div>
+        <div class="info-card">
+          <table class="data-grid" style="width:100%; border:none;">
+            <tr>
+              <td style="width:60%;">
+                <span class="data-label">Fecha Emitida: {{ odt.fecha_programada|date:"d/m/Y H:i"|default:"—" }}</span>
+               
+              </td>
 
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Correlativo</p>
-          <p class="font-semibold">{{ odt.correlativo }}</p>
-        </div>
+              <td style="width:40%; text-align:right;">
+                <span class="data-label">Número ODT: {{ odt.n_odt|stringformat:"03d" }}</span>
+            
+              </td>
+            </tr>
 
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Prioridad</p>
-          <p class="font-semibold">{{ odt.get_prioridad_display }}</p>
+            <tr>
+              <td>
+                <span class="data-label">Prioridad: {{ odt.get_prioridad_display }}</span>
+               
+              </td>
+              <td style="text-align:right;">
+                <span class="data-label">Estado de proceso: {{ odt.get_estado_display }}</span>  
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <span class="data-label">Fallo: {{ odt.titulo }}</span>
+                
+              </td>
+            </tr>
+          </table>
         </div>
+      </div>
 
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Línea de Trabajo</p>
-          <p class="font-semibold">{{ odt.tipo.nombre }}</p>
-        </div>
+      <!-- DATOS DEL EQUIPO -->
+      <div class="section record-block">
+        <div style="font-weight:bold; font-size:12pt; margin-bottom:6px;">Datos del Equipo</div>
 
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Equipo / Maquinaria</p>
-          <p class="font-semibold">{{ odt.maquinaria.nombre }}</p>
-        </div>
+        <div class="info-card">
+          <table class="data-grid" style="width:100%; border:none;">
+            <tr>
+              <td>
+                <span class="data-label">Ubicación: {{ odt.tipo.nombre }}</span>
+               
+              </td>
+               <td style="text-align:right;">
+                <span class="data-label">Código: {{ odt.maquinaria.codigo }}</span>
+                
+              </td>
+              
+            </tr>
 
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Código Equipo</p>
-          <p class="font-semibold">{{ odt.maquinaria.codigo }}</p>
-        </div>
+            <tr>
+              <td>
+                <span class="data-label">Equipo: {{ odt.maquinaria.nombre }}</span>
+                
+              </td>
+             
+            </tr>
 
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Tipo de Trabajo</p>
-          <p class="font-semibold">{{ odt.get_tipo_trabajo_display|default:"—" }}</p>
-        </div>
+           
 
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Creado por</p>
-          <p class="font-semibold">{{ odt.creado_por.get_full_name }}</p>
+            <tr>
+              <td colspan="2">
+                <span class="data-label">Descripción del fallo</span>
+                <span class="data-value" style="font-weight:400;">{{ odt.descripcion }}</span>
+              </td>
+            </tr>
+          </table>
         </div>
+      </div>
 
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Fecha creación</p>
-          <p class="font-semibold">{{ odt.creado_en|date:"d/m/Y H:i" }}</p>
-        </div>
+      <!-- INFORMACIÓN GENERAL (resumen rápido, grid responsive) -->
+      <div class="section record-block mt-4 ">
+  <div class="font-bold text-base mb-2">Detalles</div>
+
+  <div class="overflow-x-auto rounded-lg border border-neutral-200">
+    <table class="min-w-full text-sm">
+      <tbody class="divide-y divide-neutral-200">
+
+        <tr>
+          <td class="font-semibold bg-gray-50 px-3 py-2 w-1/3">
+            Tipo de Trabajo
+          </td>
+          <td class="px-3 py-2">
+            {{ odt.get_tipo_trabajo_display|default:"—" }}
+          </td>
+        </tr>
+
+        <tr>
+          <td class="font-semibold bg-gray-50 px-3 py-2">
+            Solicitado por
+          </td>
+          <td class="px-3 py-2">
+            {{ odt.creado_por.get_full_name|default:"—" }}
+          </td>
+        </tr>
 
         {% if odt.autorizado_por %}
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Autorizado por</p>
-          <p class="font-semibold">{{ odt.autorizado_por.get_full_name }}</p>
-        </div>
+        <tr>
+          <td class="font-semibold bg-gray-50 px-3 py-2">
+            Autorizado por
+          </td>
+          <td class="px-3 py-2">
+            {{ odt.autorizado_por.get_full_name }}
+          </td>
+        </tr>
         {% endif %}
 
         {% if odt.responsable_ejecucion %}
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Responsable Ejecución</p>
-          <p class="font-semibold">{{ odt.responsable_ejecucion.get_full_name }}</p>
-        </div>
+        <tr>
+          <td class="font-semibold bg-gray-50 px-3 py-2">
+            Responsable Ejecución
+          </td>
+          <td class="px-3 py-2">
+            {{ odt.responsable_ejecucion.get_full_name }}
+          </td>
+        </tr>
         {% endif %}
 
         {% if odt.fecha_programada %}
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Fecha Programada</p>
-          <p class="font-semibold">{{ odt.fecha_programada|date:"d/m/Y H:i" }}</p>
-        </div>
-        {% endif %}
-      </div>
-
-      <div class="mt-4">
-        <p class="text-xs text-neutral-500 mb-1">Título</p>
-        <p class="font-semibold">{{ odt.titulo }}</p>
-      </div>
-
-      <div class="mt-4">
-        <p class="text-xs text-neutral-500 mb-1">Descripción</p>
-        <p class="text-sm">{{ odt.descripcion }}</p>
-      </div>
-    </div>
-
-    <!-- DETALLES DE EJECUCIÓN -->
-    {% if odt.detalle_ejecucion %}
-    <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-6 mb-6">
-      <h3 class="text-lg font-semibold mb-4">Detalles de Ejecución</h3>
-      
-      {% with detalle=odt.detalle_ejecucion %}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Tipo de Falla</p>
-          <p class="font-semibold">{{ detalle.get_falla_tipo_display }}</p>
-        </div>
-
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Ejecutado por</p>
-          <p class="font-semibold">{{ detalle.ejecutado_por.get_full_name|default:"—" }}</p>
-        </div>
-
-        {% if detalle.hora_inicio_trabajo %}
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Inicio Trabajo</p>
-          <p class="font-semibold">{{ detalle.hora_inicio_trabajo|date:"d/m/Y H:i" }}</p>
-        </div>
+        <tr>
+          <td class="font-semibold bg-gray-50 px-3 py-2">
+            Fecha Programada
+          </td>
+          <td class="px-3 py-2">
+            {{ odt.fecha_programada|date:"d/m/Y H:i" }}
+          </td>
+        </tr>
         {% endif %}
 
-        {% if detalle.hora_fin_trabajo %}
-        <div>
-          <p class="text-xs text-neutral-500 mb-1">Fin Trabajo</p>
-          <p class="font-semibold">{{ detalle.hora_fin_trabajo|date:"d/m/Y H:i" }}</p>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+      <!-- DETALLES DE EJECUCIÓN -->
+      {% if odt.detalle_ejecucion %}
+      <div class="section record-block mt-4">
+        <div style="font-weight:bold; font-size:12pt; margin-bottom:6px;">Detalles de Ejecución</div>
+
+        {% with detalle=odt.detalle_ejecucion %}
+        <div class="info-card">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <span class="data-label">Tipo de Falla</span>
+              <span class="data-value">{{ detalle.get_falla_tipo_display }}</span>
+            </div>
+
+            <div>
+              <span class="data-label">Ejecutado por</span>
+              <span class="data-value">{{ detalle.ejecutado_por.get_full_name|default:"—" }}</span>
+            </div>
+
+            {% if detalle.hora_inicio_trabajo %}
+            <div>
+              <span class="data-label">Inicio Trabajo</span>
+              <span class="data-value">{{ detalle.hora_inicio_trabajo|date:"d/m/Y H:i" }}</span>
+            </div>
+            {% endif %}
+
+            {% if detalle.hora_fin_trabajo %}
+            <div>
+              <span class="data-label">Fin Trabajo</span>
+              <span class="data-value">{{ detalle.hora_fin_trabajo|date:"d/m/Y H:i" }}</span>
+            </div>
+            {% endif %}
+          </div>
+
+          {% if detalle.descripcion_falla %}
+          <div class="mt-4">
+            <span class="data-label">Descripción de la Falla</span>
+            <div class="mt-1 p-3 bg-white rounded-lg border border-neutral-200 text-sm">{{ detalle.descripcion_falla }}</div>
+          </div>
+          {% endif %}
+
+          {% if detalle.tareas_realizadas %}
+          <div class="mt-4">
+            <span class="data-label">Tareas Realizadas</span>
+            <div class="mt-1 p-3 bg-white rounded-lg border border-neutral-200 text-sm">{{ detalle.tareas_realizadas }}</div>
+          </div>
+          {% endif %}
+
+          {% if detalle.medidas_seguridad %}
+          <div class="mt-4">
+            <span class="data-label">Medidas de Seguridad</span>
+            <div class="mt-1 p-3 bg-white rounded-lg border border-neutral-200 text-sm">{{ detalle.medidas_seguridad }}</div>
+          </div>
+          {% endif %}
+
+          {% if detalle.observaciones %}
+          <div class="mt-4">
+            <span class="data-label">Observaciones</span>
+            <div class="mt-1 p-3 bg-white rounded-lg border border-neutral-200 text-sm">{{ detalle.observaciones }}</div>
+          </div>
+          {% endif %}
         </div>
-        {% endif %}
-      </div>
-
-      {% if detalle.descripcion_falla %}
-      <div class="mt-4">
-        <p class="text-xs text-neutral-500 mb-1">Descripción de la Falla</p>
-        <p class="text-sm bg-white rounded-lg p-3 border border-neutral-200">{{ detalle.descripcion_falla }}</p>
+        {% endwith %}
       </div>
       {% endif %}
 
-      {% if detalle.tareas_realizadas %}
-      <div class="mt-4">
-        <p class="text-xs text-neutral-500 mb-1">Tareas Realizadas</p>
-        <p class="text-sm bg-white rounded-lg p-3 border border-neutral-200">{{ detalle.tareas_realizadas }}</p>
+      <!-- REPUESTOS -->
+      {% if odt.repuestos.exists %}
+      <div class="section record-block mt-4">
+        <div style="font-weight:bold; font-size:12pt; margin-bottom:6px;">Repuestos Utilizados</div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white rounded-lg overflow-hidden styled-table">
+            <thead class="bg-neutral-200">
+              <tr class="text-left text-sm">
+                <th class="px-4 py-2">Código</th>
+                <th class="px-4 py-2">Descripción</th>
+                <th class="px-4 py-2">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-neutral-100">
+              {% for rep in odt.repuestos.all %}
+              <tr class="text-sm">
+                <td class="px-4 py-2 w-40">{{ rep.codigo|default:"—" }}</td>
+                <td class="px-4 py-2">{{ rep.descripcion }}</td>
+                <td class="px-4 py-2 w-20">{{ rep.cantidad_utilizada }} Uni.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
       {% endif %}
 
-      {% if detalle.medidas_seguridad %}
-      <div class="mt-4">
-        <p class="text-xs text-neutral-500 mb-1">Medidas de Seguridad</p>
-        <p class="text-sm bg-white rounded-lg p-3 border border-neutral-200">{{ detalle.medidas_seguridad }}</p>
+      <!-- PERSONAL -->
+      {% if odt.personal_necesario.exists %}
+      <div class="section record-block mt-4">
+        <div style="font-weight:bold; font-size:12pt; margin-bottom:6px;">Personal Necesario</div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white rounded-lg overflow-hidden styled-table">
+            <thead class="bg-neutral-200">
+              <tr class="text-left text-sm">
+                <th class="px-4 py-2">Categoría</th>
+                <th class="px-4 py-2">Trabajador</th>
+                <th class="px-4 py-2">Hrs.Trabajadas</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-neutral-100">
+              {% for per in odt.personal_necesario.all %}
+              <tr class="text-sm">
+                <td class="px-4 py-2 w-40">{{ per.categoria|default:"—" }}</td>
+                <td class="px-4 py-2 ">{{ per.trabajador|default:"—" }}</td>
+                <td class="px-4 py-2 w-30 text-right">{{ per.horas_trabajadas }} hrs.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
       {% endif %}
 
-      {% if detalle.observaciones %}
-      <div class="mt-4">
-        <p class="text-xs text-neutral-500 mb-1">Observaciones</p>
-        <p class="text-sm bg-white rounded-lg p-3 border border-neutral-200">{{ detalle.observaciones }}</p>
+      <!-- FIRMAS -->
+      <div class="section record-block mt-6">
+        <h3 style="font-weight:bold; font-size:12pt; margin-bottom:8px;">Personal Involucrado y Firmas</h3>
+
+        <div class="firma-grid">
+          <!-- Realizado por -->
+          <div>
+            {% if odt.creado_por %}
+              {% if odt.creado_por.firma %}
+                <img class="firma-img" src="{{ odt.creado_por.firma.url }}" alt="Firma Realizado">
+              {% else %}
+                <p class="no-firma">Firma no registrada</p>
+              {% endif %}
+              <div style="font-size:9pt; margin-top:6px;">Realizado por
+                {% for g in odt.creado_por.groups.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+              </div>
+              <div style="font-size:10pt; font-weight:600;">{{ odt.creado_por.get_full_name }}</div>
+            {% else %}
+              <p class="no-firma">No asignado</p>
+            {% endif %}
+          </div>
+
+          <!-- Revisado por -->
+          <div>
+            {% if odt.revisado_por %}
+              {% if odt.revisado_por.firma %}
+                <img class="firma-img" src="{{ odt.revisado_por.firma.url }}" alt="Firma Revisado">
+              {% else %}
+                <p class="no-firma">Firma no registrada</p>
+              {% endif %}
+              <div style="font-size:9pt; margin-top:6px;">Revisado por
+                {% for g in odt.revisado_por.groups.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+              </div>
+              <div style="font-size:10pt; font-weight:600;">{{ odt.revisado_por.get_full_name }}</div>
+            {% else %}
+              <p class="no-firma">Pendiente de revisión</p>
+            {% endif %}
+          </div>
+
+          <!-- Aprobado por -->
+          <div>
+            {% if odt.aprobado_por %}
+              {% if odt.aprobado_por.firma %}
+                <img class="firma-img" src="{{ odt.aprobado_por.firma.url }}" alt="Firma Aprobado">
+              {% else %}
+                <p class="no-firma">Firma no registrada</p>
+              {% endif %}
+              <div style="font-size:9pt; margin-top:6px;">Aprobado por
+                {% for g in odt.aprobado_por.groups.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+              </div>
+              <div style="font-size:10pt; font-weight:600;">{{ odt.aprobado_por.get_full_name }}</div>
+            {% else %}
+              <p class="no-firma">Pendiente de aprobación</p>
+            {% endif %}
+          </div>
+        </div>
+
       </div>
-      {% endif %}
-      {% endwith %}
+
     </div>
-    {% endif %}
-
-    <!-- REPUESTOS -->
-    {% if odt.repuestos.exists %}
-    <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-6 mb-6">
-      <h3 class="text-lg font-semibold mb-4">Repuestos Utilizados</h3>
-      
-      <div class="overflow-x-auto">
-        <table class="min-w-full bg-white rounded-lg overflow-hidden">
-          <thead class="bg-neutral-200">
-            <tr class="text-left text-sm">
-              <th class="px-4 py-2">Código</th>
-              <th class="px-4 py-2">Descripción</th>
-              <th class="px-4 py-2">Cantidad</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-neutral-100">
-            {% for rep in odt.repuestos.all %}
-            <tr class="text-sm">
-              <td class="px-4 py-2">{{ rep.codigo|default:"—" }}</td>
-              <td class="px-4 py-2">{{ rep.descripcion }}</td>
-              <td class="px-4 py-2">{{ rep.cantidad_utilizada }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- PERSONAL -->
-    {% if odt.personal_necesario.exists %}
-    <div class="rounded-2xl bg-neutral-100 border border-neutral-200 p-6">
-      <h3 class="text-lg font-semibold mb-4">Personal Necesario</h3>
-      
-      <div class="overflow-x-auto">
-        <table class="min-w-full bg-white rounded-lg overflow-hidden">
-          <thead class="bg-neutral-200">
-            <tr class="text-left text-sm">
-              <th class="px-4 py-2">Categoría</th>
-              <th class="px-4 py-2">Trabajador</th>
-              <th class="px-4 py-2">Horas Trabajadas</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-neutral-100">
-            {% for per in odt.personal_necesario.all %}
-            <tr class="text-sm">
-              <td class="px-4 py-2">{{ per.categoria|default:"—" }}</td>
-              <td class="px-4 py-2">{{ per.trabajador|default:"—" }}</td>
-              <td class="px-4 py-2">{{ per.horas_trabajadas }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-    {% endif %}
-
   </div>
 </section>
 {% endblock %}

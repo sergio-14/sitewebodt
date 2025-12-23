@@ -28,7 +28,7 @@
         </div>
 
         <div class="md:col-span-2">
-          <label class="block text-sm font-medium mb-1">Título</label>
+          <label class="block text-sm font-medium mb-1">Razon/Falla de ODT</label>
           {{ form.titulo }}
           {% for e in form.titulo.errors %}
           <p class="text-sm text-red-600 mt-1">{{ e }}</p>
@@ -36,7 +36,7 @@
         </div>
 
         <div class="md:col-span-2">
-          <label class="block text-sm font-medium mb-1">Descripción del Trabajo</label>
+          <label class="block text-sm font-medium mb-1">Descripción</label>
           {{ form.descripcion }}
           {% for e in form.descripcion.errors %}
           <p class="text-sm text-red-600 mt-1">{{ e }}</p>
@@ -58,7 +58,7 @@
           {% endfor %}
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">Foto de Fallo</label>
+          <label class="md:col-span-2 block text-sm font-medium mb-1">Foto de Fallo</label>
           {{ form.archivo_informe }}
           {% for e in form.archivo_informe.errors %}
           <p class="text-sm text-red-600 mt-1">{{ e }}</p>
