@@ -538,14 +538,20 @@ class ODTEditGeneralForm(TailwindFormMixin, forms.ModelForm):
             'fecha_programada', 'fecha_inicio', 'fecha_termino', 'estado'
         ]
         widgets = {
-            'fecha_programada': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'fecha_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'fecha_termino': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'fecha_programada': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+            'fecha_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+            'fecha_termino': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['responsable_ejecucion'].required = False
+
+        for field_name in ['fecha_programada', 'fecha_inicio', 'fecha_termino']:
+            if self.instance and getattr(self.instance, field_name):
+              
+                self.initial[field_name] = getattr(self.instance, field_name).strftime('%Y-%m-%dT%H:%M')
 
 
         

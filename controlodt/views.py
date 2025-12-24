@@ -328,6 +328,8 @@ from .forms import TipoMaquinariaForm, MaquinariaForm
 # =======================
 #   TIPO MAQUINARIA
 # =======================
+@login_required
+@permission_required('controlodt.view_tipomaquinaria', raise_exception=True)
 def tipo_list(request):
     tipos = TipoMaquinaria.objects.all()
     return render(request, "mantenimiento/tipo_list.html", {
@@ -335,7 +337,8 @@ def tipo_list(request):
         "title": "Líneas de Trabajo"
     })
 
-
+@login_required
+@permission_required('controlodt.add_tipomaquinaria', raise_exception=True)
 def tipo_create(request):
     if request.method == "POST":
         form = TipoMaquinariaForm(request.POST)
@@ -351,7 +354,8 @@ def tipo_create(request):
         "title": "Nueva Línea de Trabajo"
     })
 
-
+@login_required
+@permission_required('controlodt.change_tipomaquinaria', raise_exception=True)
 def tipo_edit(request, pk):
     obj = get_object_or_404(TipoMaquinaria, pk=pk)
 
@@ -370,7 +374,8 @@ def tipo_edit(request, pk):
         "is_edit": True
     })
 
-
+@login_required
+@permission_required('controlodt.delete_tipomaquinaria', raise_exception=True)
 def tipo_toggle(request, pk):
     obj = get_object_or_404(TipoMaquinaria, pk=pk)
     obj.activo = not obj.activo
@@ -381,6 +386,8 @@ def tipo_toggle(request, pk):
 # =======================
 #       MAQUINARIA
 # =======================
+@login_required
+@permission_required('controlodt.view_maquinaria', raise_exception=True)
 def maquinaria_list(request):
     maquinas = Maquinaria.objects.select_related().all()
     return render(request, "mantenimiento/maquinaria_list.html", {
@@ -388,7 +395,8 @@ def maquinaria_list(request):
         "title": "Equipos de Trabajo"
     })
 
-
+@login_required
+@permission_required('controlodt.add_maquinaria', raise_exception=True)
 def maquinaria_create(request):
     if request.method == "POST":
         form = MaquinariaForm(request.POST)
@@ -405,6 +413,8 @@ def maquinaria_create(request):
     })
 
 
+@login_required
+@permission_required('controlodt.change_maquinaria', raise_exception=True)
 def maquinaria_edit(request, pk):
     obj = get_object_or_404(Maquinaria, pk=pk)
 
@@ -424,6 +434,8 @@ def maquinaria_edit(request, pk):
     })
 
 
+@login_required
+@permission_required('controlodt.delete_maquinaria', raise_exception=True)
 def maquinaria_toggle(request, pk):
     obj = get_object_or_404(Maquinaria, pk=pk)
     obj.activo = not obj.activo
@@ -599,10 +611,7 @@ def odt_editar_general(request, pk):
     """
     odt = get_object_or_404(RegistroODT, pk=pk)
     
-    # Verificar permisos
-    if not puede_editar_odt(request.user, odt):
-        messages.error(request, 'No tienes permiso para editar esta ODT.')
-        return redirect('odt_detail', pk=pk)
+    
     
     # Obtener o crear DetalleEjecucion si existe
     detalle = None
@@ -638,6 +647,7 @@ def odt_editar_general(request, pk):
     context = {
         'title': f'Editar ODT #{odt.pk}',
         'odt': odt,
+        'puede_editar': puede_editar_odt(request.user, odt),
         'form_odt': form_odt,
         'form_detalle': form_detalle,
         'formset_repuestos': formset_repuestos,
@@ -1196,6 +1206,9 @@ def generar_grafico_base64(labels, data, title, colors=None):
     return f"data:image/png;base64,{image_base64}"
 
 
+
+@login_required
+@permission_required('controlodt.estadisticas', raise_exception=True)
 def reporte_odt_pdf(request):
     queryset = RegistroODT.objects.all()
 

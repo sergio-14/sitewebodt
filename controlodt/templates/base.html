@@ -162,7 +162,7 @@
                 <button id="userMenuBtn" class="inline-flex font-secondary items-center gap-2 rounded-full px-2 h-10 hover:text-red-600 hover:bg-slate-800">
                   <img src="{% if user.is_authenticated and user.imagen %}{{ user.imagen.url }}{% else %}{% static 'placeholder-avatar.png' %}{% endif %}" class="h-7 w-7 rounded-full object-cover" alt="Avatar de {{ user.get_full_name|default:user.email }}" />
                     <span class="hidden sm:block font-medium truncate max-w-48" title="{{ user.nombre }}">{{ user.nombre }}</span>
-                    <span class="hidden sm:block font-medium text-xs text-yellow-400">Rol: {{ user.groups.all|first }}</span>
+                    <span class="hidden sm:block font-medium text-xs text-neutral-100">Rol: {{ user.groups.all|first }}</span>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                   </svg>
