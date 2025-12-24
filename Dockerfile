@@ -29,16 +29,3 @@ EXPOSE 8000
 
 # Comando para iniciar la aplicación
 CMD gunicorn core.wsgi --bind 0.0.0.0:$PORT
-```
-
-## Estructura final de archivos:
-```
-tu_proyecto/
-├── Dockerfile             ← NUEVO (crear este)
-├── requirements.txt       ← Ya existe
-├── runtime.txt            ← Ya existe (puedes eliminarlo, no es necesario con Docker)
-├── Procfile              ← Ya existe (puedes eliminarlo, no es necesario con Docker)
-├── core/
-│   ├── wsgi.py
-│   └── settings.py
-└── manage.py
